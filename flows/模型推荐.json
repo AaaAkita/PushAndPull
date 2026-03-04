@@ -1,0 +1,125 @@
+{
+    "steps": [
+        {
+            "config": {
+                "columns": [
+                    "resource_id",
+                    "title",
+                    "新增推荐",
+                    "title.1",
+                    "取消推荐",
+                    "title.2"
+                ],
+                "filePath": "E:/#2026Q1/1/0123推荐.xlsx",
+                "waitBefore": 500,
+                "waitForSelector": ""
+            },
+            "id": "1768877062299",
+            "title": "读取 Excel",
+            "type": "excel_read"
+        },
+        {
+            "config": {
+                "loginBtnSelector": "//*[@id=\"pane-1\"]/form[1]/button[1]",
+                "loginPass": "Idp20180510！",
+                "loginPassSelector": "//*[@id=\"pane-1\"]/form[1]/div[2]/div[1]/div[1]/input[1]",
+                "loginUser": "wanghongkai@ideapool.tv",
+                "loginUserSelector": "//*[@id=\"pane-1\"]/form[1]/div[1]/div[1]/div[1]/input[1]",
+                "url": "https://www.cgpool.com/mam_admin/#/images",
+                "validateSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[1]/label[1]",
+                "waitAfter": "20000",
+                "waitBefore": 500,
+                "waitForSelector": ""
+            },
+            "id": "1768877341434",
+            "title": "打开元数云",
+            "type": "open_url"
+        },
+        {
+            "config": {
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[1]/div[4]",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[1]/div[4]"
+            },
+            "id": "1769161658652",
+            "title": "点击元素",
+            "type": "click"
+        },
+        {
+            "config": {
+                "selector": "text=\"重置\"",
+                "validateSelector": "",
+                "waitAfter": "2000",
+                "waitBefore": 500,
+                "waitForSelector": "text=\"重置\""
+            },
+            "id": "1769161843027",
+            "title": "点击元素",
+            "type": "click"
+        },
+        {
+            "config": {
+                "inputType": "excel",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]",
+                "validateSelector": "",
+                "value": "新增推荐",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]"
+            },
+            "id": "1769161676812",
+            "title": "输入文本",
+            "type": "input_text"
+        },
+        {
+            "config": {
+                "selector": "text=\"查询\"",
+                "validateSelector": "",
+                "waitAfter": "0",
+                "waitBefore": 500,
+                "waitForSelector": "text=\"查询\""
+            },
+            "id": "1769161716990",
+            "title": "点击元素",
+            "type": "click"
+        },
+        {
+            "config": {
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/div[4]/div[4]/div[1]/table[1]/thead[1]/tr[1]/th[1]/div[1]/label[1]/span[1]/span[1]",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/div[4]/div[4]/div[1]/table[1]/thead[1]/tr[1]/th[1]/div[1]/label[1]/span[1]/span[1]"
+            },
+            "id": "1769162167856",
+            "title": "点击元素",
+            "type": "click"
+        },
+        {
+            "config": {
+                "selector": ".btnLine >> text=\"推荐\"",
+                "validateSelector": "text=\"确定\"",
+                "waitAfter": "2000",
+                "waitBefore": "2000",
+                "waitForSelector": ".btnLine >> text=\"推荐\""
+            },
+            "id": "1769161775376",
+            "title": "点击元素",
+            "type": "click"
+        },
+        {
+            "config": {
+                "selector": "button >> text=\"确定\"",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "button >> text=\"确定\""
+            },
+            "id": "1769161821478",
+            "title": "点击元素",
+            "type": "click"
+        }
+    ]
+}

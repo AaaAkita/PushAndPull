@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的方案 - Visual Playwright</title>
+    <!-- CSS Reset & Variables -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Custom Modern Styles Override */
+        body {
+            background-color: #0f1115;
+            /* Deep dark bg */
+            background-image: radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.08), transparent 25%);
+        }
+
+        /* Glassmorphism Header */
+        header {
+            background: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        /* Search Input */
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .search-input {
+            background: rgba(30, 30, 35, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 0.75rem 1rem 0.75rem 2.8rem;
+            border-radius: 99px;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .search-input:focus {
+            background: rgba(40, 40, 45, 0.9);
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+            outline: none;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            pointer-events: none;
+        }
+
+        /* Card Grid System */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Scheme Card */
+        .scheme-card {
+            background: rgba(30, 32, 38, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+
+        }
+
+        .scheme-card:hover {
+            transform: translateY(-4px);
+            background: rgba(40, 42, 50, 0.8);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Thumbnail Area */
+        .card-thumb {
+            height: 140px;
+            background: linear-gradient(135deg, #1f2937, #111827);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative Pattern for thumb */
+        .card-thumb::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            background-image:
+                radial-gradient(circle at center, rgba(139, 92, 246, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.5;
+            transform: rotate(45deg);
+        }
+
+        .thumb-icon {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            z-index: 1;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+            transition: transform 0.3s;
+        }
+
+        .scheme-card:hover .thumb-icon {
+            transform: scale(1.1);
+        }
+
+        /* Card Content */
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f3f4f6;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-subtitle {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            font-family: monospace;
+            opacity: 0.8;
+        }
+
+        /* Hover Overlay Actions */
+        .card-actions {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .scheme-card:hover .card-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            color: #e5e7eb;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        .action-btn.delete:hover {
+            background: #ef4444;
+            color: #fff;
+            border-color: #ef4444;
+        }
+
+        /* Create New Card (Dashed) */
+        .create-card {
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            background: transparent;
+            min-height: 250px;
+            /* Match typical card height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #6b7280;
+        }
+
+        .create-card:hover {
+            border-color: #8b5cf6;
+            color: #a78bfa;
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .create-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Context Menu Styles (if we wanted one, but using hover buttons for now) */
+
+        /* Floating Back Button */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #9ca3af;
+            text-decoration: none;
+            transition: color 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+        }
+
+        .btn-primary-new {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 99px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px -1px rgba(124, 58, 237, 0.3);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-primary-new:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 10px -1px rgba(124, 58, 237, 0.4);
+        }
+
+        /* Status Badge for Current Scheme */
+        .status-badge {
+            position: absolute;
+            left: 0.75rem;
+            top: 0.75rem;
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 99px;
+            z-index: 5;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- Modern Header -->
+    <header class="px-6 py-4 flex items-center">
+        <div class="flex items-center">
+            <div
+                class="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+                <i class="fa-solid fa-layer-group text-white text-lg"></i>
+            </div>
+            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 ml-2">
+                方案管理中心
+            </h1>
+        </div>
+
+        <div class="flex-1 flex justify-center px-6">
+            <div class="search-container">
+                <i class="fa-solid fa-search search-icon"></i>
+                <input type="text" id="scheme-search" class="search-input" placeholder="搜索您的自动化方案..."
+                    oninput="filterSchemes()">
+            </div>
+        </div>
+
+    </header>
+
+    <!-- Main Content Area with Grid -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar">
+        <div class="p-8 max-w-[1800px] mx-auto">
+
+            <div class="flex justify-between items-end mb-6 px-2">
+                <div>
+                    <h2 class="text-2xl font-bold text-white mb-1">我的方案</h2>
+                    <p class="text-gray-400 text-sm" id="scheme-count">加载中...</p>
+                </div>
+            </div>
+
+            <!-- Grid Container -->
+            <div id="scheme-grid" class="grid-layout">
+                <!-- Cards will be injected here -->
+            </div>
+
+        </div>
+    </main>
+
+    <script src="js/schemes.js"></script>
+    <script>
+        // Inline helper for new scheme to match the new button logic, 
+        // essentially redirects to editor with empty or new ID.
+        // Actually schemes.js handles CRUD, we just bind the UI.
+
+        function createNewScheme() {
+            // In grid view, "New" card might be enough, but top button is good too.
+            // We can use a prompt or redirect to index with no ID to start fresh (but separate file concept?)
+            // Best workflow: Ask name -> Create -> Redirect.
+            // Or: Redirect to editor -> Editor asks name on save.
+            // Let's stick to consistent prompt here for now.
+            const name = prompt("请输入新方案名称 (New Scheme Name):");
+            if (name) {
+                // Create empty file via API then open it?
+                // Or just redirect to editor with ?id=name and let editor handle creation on save?
+                // Better to create file explicitly so it shows up in list immediately.
+                // We reuse the standard save API with empty steps.
+                fetch('/api/flows', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, steps: [] })
+                }).then(res => res.json()).then(data => {
+                    if (data.status === 'success') {
+                        window.location.href = `index.html?id=${encodeURIComponent(name)}`;
+                    } else {
+                        alert('创建失败: ' + data.message);
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>

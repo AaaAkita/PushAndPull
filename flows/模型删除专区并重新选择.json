@@ -1,0 +1,138 @@
+{
+    "steps": [
+        {
+            "config": {
+                "columns": [
+                    "素材ShowID",
+                    "素材标题",
+                    "分区名称"
+                ],
+                "filePath": "E:/#2026Q1/2/军事虚拟专区独占修改/军事虚拟专区原分类.xlsx",
+                "waitBefore": 500,
+                "waitForSelector": ""
+            },
+            "id": "1768877062299",
+            "title": "读取 Excel",
+            "type": "excel_read"
+        },
+        {
+            "config": {
+                "loginBtnSelector": "//*[@id=\"pane-1\"]/form[1]/button[1]",
+                "loginPass": "Idp20180510！",
+                "loginPassSelector": "//*[@id=\"pane-1\"]/form[1]/div[2]/div[1]/div[1]/input[1]",
+                "loginUser": "wanghongkai@ideapool.tv",
+                "loginUserSelector": "//*[@id=\"pane-1\"]/form[1]/div[1]/div[1]/div[1]/input[1]",
+                "url": "https://www.cgpool.com/mam_admin/#/images",
+                "validateSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[1]/label[1]",
+                "waitAfter": "20000",
+                "waitBefore": 500,
+                "waitForSelector": ""
+            },
+            "id": "1768877341434",
+            "title": "打开元数云",
+            "type": "open_url"
+        },
+        {
+            "config": {
+                "selector": "text=\"三维模型\"",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "text=\"三维模型\""
+            },
+            "id": "1770101252240",
+            "title": "点击三维模型",
+            "type": "click"
+        },
+        {
+            "config": {
+                "inputType": "excel",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]",
+                "validateSelector": "",
+                "value": "素材ShowID",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]"
+            },
+            "id": "1770101279657",
+            "title": "输入文本",
+            "type": "input_text"
+        },
+        {
+            "config": {
+                "selector": "span >> text=\"查询\"",
+                "validateSelector": "text=\"共 1 条\"",
+                "waitAfter": "5000",
+                "waitBefore": 500,
+                "waitForSelector": "span >> text=\"查询\""
+            },
+            "id": "1770101298071",
+            "title": "点击查询",
+            "type": "click"
+        },
+        {
+            "config": {
+                "selector": ".el-table__fixed-right >> text=\"编辑\"",
+                "validateSelector": ".radioSty >> text=\"学习分享\"",
+                "waitAfter": "5000",
+                "waitBefore": "3000",
+                "waitForSelector": ".el-table__fixed-right >> text=\"编辑\""
+            },
+            "id": "1770101332535",
+            "title": "点击编辑",
+            "type": "click"
+        },
+        {
+            "config": {
+                "selector": ".radioSty >> text=\"学习分享\"",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": ".radioSty >> text=\"学习分享\""
+            },
+            "id": "1770101370078",
+            "title": "点击学习分享:清空专区信息",
+            "type": "click"
+        },
+        {
+            "config": {
+                "selector": ".radioSty >> text=\"专区\"",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": ".radioSty >> text=\"专区\""
+            },
+            "id": "1770101401045",
+            "title": "点击专区",
+            "type": "click"
+        },
+        {
+            "config": {
+                "expandMethod": "click",
+                "inputType": "fixed",
+                "optionSelector": "li",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[77]/label[1]/span[2]/div[1]/div[2]/div[1]/div[1]/input[1]",
+                "validateSelector": "",
+                "value": "军事虚拟",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": ""
+            },
+            "id": "1770101647943",
+            "title": "下拉智能选择：军事虚拟",
+            "type": "dropdown_select"
+        },
+        {
+            "config": {
+                "selector": "button >> text=\"保存\"",
+                "validateSelector": "button >> text=\"添加\"",
+                "waitAfter": "5000",
+                "waitBefore": 500,
+                "waitForSelector": "button >> text=\"保存\""
+            },
+            "id": "1770101720486",
+            "title": "点击元素",
+            "type": "click"
+        }
+    ]
+}

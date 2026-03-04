@@ -1,0 +1,331 @@
+{
+    "steps": [
+        {
+            "config": {
+                "columns": [
+                    "ID",
+                    "图片",
+                    "预览图",
+                    "标题",
+                    "分类1",
+                    "分类2",
+                    "标签1",
+                    "标签2",
+                    "标签3",
+                    "标签4",
+                    "标签5",
+                    "标签6",
+                    "标签7",
+                    "标签8",
+                    "用户类型",
+                    "上传ID",
+                    "数据来源",
+                    "专区",
+                    "执行结果"
+                ],
+                "filePath": "E:/#2026Q1/1/二十四节气上传信息/上传文件信息5.xlsx",
+                "waitBefore": 500,
+                "waitForSelector": ""
+            },
+            "id": "1768877062299",
+            "title": "读取 Excel",
+            "type": "excel_read"
+        },
+        {
+            "config": {
+                "loginBtnSelector": "//*[@id=\"pane-1\"]/form[1]/button[1]",
+                "loginPass": "Idp20180510！",
+                "loginPassSelector": "//*[@id=\"pane-1\"]/form[1]/div[2]/div[1]/div[1]/input[1]",
+                "loginUser": "wanghongkai@ideapool.tv",
+                "loginUserSelector": "//*[@id=\"pane-1\"]/form[1]/div[1]/div[1]/div[1]/input[1]",
+                "url": "https://www.cgpool.com/mam_admin/#/images",
+                "validateSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[1]/label[1]",
+                "waitAfter": "20000",
+                "waitBefore": 500,
+                "waitForSelector": ""
+            },
+            "id": "1768877341434",
+            "title": "打开元数云",
+            "type": "open_url"
+        },
+        {
+            "config": {
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[1]/div[1]",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[1]/div[1]"
+            },
+            "id": "1768877463305",
+            "title": "点击图片",
+            "type": "click"
+        },
+        {
+            "config": {
+                "selector": "text=\"添加\"",
+                "validateSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[1]/div[1]/div[1]/div[1]",
+                "waitAfter": "10000",
+                "waitBefore": 500,
+                "waitForSelector": "text=\"添加\""
+            },
+            "id": "1768877515503",
+            "title": "点击添加",
+            "type": "click"
+        },
+        {
+            "config": {
+                "inputType": "excel",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[2]/div[1]/div[1]/input[1]",
+                "validateSelector": "",
+                "value": "标题",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[2]/div[1]/div[1]/input[1]"
+            },
+            "id": "1768877572235",
+            "title": "输入文本",
+            "type": "input_text"
+        },
+        {
+            "config": {
+                "filePath": "预览图",
+                "inputType": "excel",
+                "selector": "text=\"上传封面图\"",
+                "validateSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[4]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/ul[1]/li[1]/a[1]",
+                "waitAfter": "10000",
+                "waitBefore": 500,
+                "waitForSelector": "text=\"上传封面图\""
+            },
+            "id": "1768877594980",
+            "title": "上传封面图",
+            "type": "upload_file"
+        },
+        {
+            "config": {
+                "filePath": "图片",
+                "inputType": "excel",
+                "selector": "text=\"上传附件\"",
+                "validateSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[4]/div[2]/div[1]/div[1]/div[2]/div[2]/div[1]/div[1]/input[1]",
+                "waitAfter": "360000",
+                "waitBefore": 500,
+                "waitForSelector": "text=\"上传附件\""
+            },
+            "id": "1768877654116",
+            "title": "上传文件",
+            "type": "upload_file"
+        },
+        {
+            "config": {
+                "selector": "text=\"元素\"",
+                "validateSelector": "",
+                "waitAfter": "0",
+                "waitBefore": 500,
+                "waitForSelector": "text=\"元素\""
+            },
+            "id": "1768877759981",
+            "title": "点击元素",
+            "type": "click"
+        },
+        {
+            "config": {
+                "expandMethod": "click",
+                "inputType": "excel",
+                "optionSelector": "li",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[6]/div[1]/div[1]/div[1]/div[1]/input[1]",
+                "validateSelector": "",
+                "value": "分类1",
+                "waitAfter": 0,
+                "waitBefore": "1000",
+                "waitForSelector": ""
+            },
+            "id": "1768877791644",
+            "title": "下拉智能选择元素",
+            "type": "dropdown_select"
+        },
+        {
+            "config": {
+                "inputType": "excel",
+                "optionSelector": "li",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[7]/div[1]/div[1]/div[1]/input[1]",
+                "validateSelector": "",
+                "value": "分类2",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": ""
+            },
+            "id": "1768877815970",
+            "title": "下拉智能选择分类",
+            "type": "dropdown_select"
+        },
+        {
+            "config": {
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[7]/div[1]/label[1]/span[1]/span[1]",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[7]/div[1]/label[1]/span[1]/span[1]"
+            },
+            "id": "1768896002875",
+            "title": "点击不在主分类显示",
+            "type": "click"
+        },
+        {
+            "config": {
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[7]/div[1]/label[1]/span[1]/span[1]",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[7]/div[1]/label[1]/span[1]/span[1]"
+            },
+            "id": "1768902841536",
+            "title": "点击不在主分类显示 (Copy)",
+            "type": "click"
+        },
+        {
+            "config": {
+                "inputType": "excel",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[8]/div[1]/div[1]/div[1]/input[1]",
+                "value": "标签1",
+                "waitBefore": "1000",
+                "waitForSelector": ""
+            },
+            "id": "1768894991832",
+            "title": "标签输入",
+            "type": "label_input"
+        },
+        {
+            "config": {
+                "inputType": "excel",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[8]/div[1]/div[1]/div[1]/input[1]",
+                "value": "标签2",
+                "waitBefore": "1000",
+                "waitForSelector": ""
+            },
+            "id": "1768895007923",
+            "title": "标签输入2",
+            "type": "label_input"
+        },
+        {
+            "config": {
+                "expandMethod": "hover",
+                "inputType": "fixed",
+                "optionSelector": "li",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[32]/div[1]/div[1]/div[1]/div[1]/input[1]",
+                "validateSelector": "",
+                "value": "企业",
+                "waitAfter": 0,
+                "waitBefore": "1000",
+                "waitForSelector": ""
+            },
+            "id": "1768895026934",
+            "title": "下拉智能选择 (Smart Select)",
+            "type": "dropdown_select"
+        },
+        {
+            "config": {
+                "inputType": "excel",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[33]/div[1]/div[1]/div[1]/div[1]/input[1]",
+                "validateSelector": "",
+                "value": "上传ID",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[33]/div[1]/div[1]/div[1]/div[1]/input[1]"
+            },
+            "id": "1768895099676",
+            "title": "选择用户",
+            "type": "input_text"
+        },
+        {
+            "config": {
+                "selector": ".el-autocomplete-suggestion li:visible",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": ""
+            },
+            "id": "1768901244205",
+            "title": "点击元素",
+            "type": "click"
+        },
+        {
+            "config": {
+                "expandMethod": "hover",
+                "inputType": "fixed",
+                "optionSelector": "li",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[35]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]",
+                "validateSelector": "",
+                "value": "奇点文化",
+                "waitAfter": 0,
+                "waitBefore": "750",
+                "waitForSelector": ""
+            },
+            "id": "1768895228390",
+            "title": "下拉智能选择 (Smart Select)",
+            "type": "dropdown_select"
+        },
+        {
+            "config": {
+                "inputType": "excel",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[35]/div[2]/div[1]/div[1]/div[1]/input[1]",
+                "validateSelector": "",
+                "value": "数据来源",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[35]/div[2]/div[1]/div[1]/div[1]/input[1]"
+            },
+            "id": "1768895247015",
+            "title": "输入文本",
+            "type": "input_text"
+        },
+        {
+            "config": {
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[37]/label[1]/span[1]/span[1]",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[37]/label[1]/span[1]/span[1]"
+            },
+            "id": "1768895634045",
+            "title": "点击元素",
+            "type": "click"
+        },
+        {
+            "config": {
+                "inputType": "excel",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[37]/label[1]/span[2]/div[1]/div[2]/div[1]/div[1]/input[1]",
+                "validateSelector": "",
+                "value": "专区",
+                "waitAfter": "",
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/form[1]/div[37]/label[1]/span[2]/div[1]/div[2]/div[1]/div[1]/input[1]"
+            },
+            "id": "1768895655827",
+            "title": "输入文本",
+            "type": "input_text"
+        },
+        {
+            "config": {
+                "selector": ".el-select-dropdown li:visible",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": "1000",
+                "waitForSelector": ""
+            },
+            "id": "1768901387760",
+            "title": "点击元素",
+            "type": "click"
+        },
+        {
+            "config": {
+                "selector": "text=\"保存\"",
+                "validateSelector": "text=\"添加\"",
+                "waitAfter": "10000",
+                "waitBefore": 500,
+                "waitForSelector": "text=\"保存\""
+            },
+            "id": "1768901831325",
+            "title": "点击保存",
+            "type": "click"
+        }
+    ]
+}

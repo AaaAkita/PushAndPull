@@ -1,0 +1,185 @@
+{
+    "steps": [
+        {
+            "config": {
+                "loginBtnSelector": "//*[@id=\"pane-1\"]/form[1]/button[1]",
+                "loginPass": "Idp20180510！",
+                "loginPassSelector": "//*[@id=\"pane-1\"]/form[1]/div[2]/div[1]/div[1]/input[1]",
+                "loginUser": "wanghongkai@ideapool.tv",
+                "loginUserSelector": "//*[@id=\"pane-1\"]/form[1]/div[1]/div[1]/div[1]/input[1]",
+                "url": "https://www.cgpool.com/mam_admin/#/images",
+                "validateSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[1]/label[1]",
+                "waitAfter": "20000",
+                "waitBefore": 500,
+                "waitForSelector": ""
+            },
+            "id": "1768877341434",
+            "title": "打开元数云",
+            "type": "open_url"
+        },
+        {
+            "config": {
+                "selector": "text=\"三维模型\"",
+                "validateSelector": "",
+                "waitAfter": 0,
+                "waitBefore": 500,
+                "waitForSelector": "text=\"三维模型\""
+            },
+            "id": "1768877463305",
+            "title": "点击三维模型",
+            "type": "click"
+        },
+        {
+            "id": "1769757106319",
+            "type": "dropdown_select",
+            "title": "下拉智能选择推荐",
+            "config": {
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/form[1]/div[4]/div[2]/div[1]/div[1]/div[1]/div[1]/input[1]",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/form[1]/div[4]/div[2]/div[1]/div[1]/div[1]/div[1]/input[1]",
+                "optionSelector": "li",
+                "value": "推荐",
+                "inputType": "fixed",
+                "expandMethod": "click",
+                "waitAfter": 0,
+                "validateSelector": ""
+            }
+        },
+        {
+            "id": "1769757166844",
+            "type": "click",
+            "title": "点击查询",
+            "config": {
+                "waitBefore": 500,
+                "waitForSelector": "span >> text=\"查询\"",
+                "selector": "span >> text=\"查询\"",
+                "waitAfter": "3000",
+                "validateSelector": ""
+            }
+        },
+        {
+            "id": "1769757473826",
+            "type": "click",
+            "title": "点击元素",
+            "config": {
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/div[5]/div[1]/span[2]/div[1]/div[1]/span[1]/span[1]/i[1]",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/div[5]/div[1]/span[2]/div[1]/div[1]/span[1]/span[1]/i[1]",
+                "waitAfter": 0,
+                "validateSelector": ""
+            }
+        },
+        {
+            "id": "1769757509308",
+            "type": "click",
+            "title": "点击元素",
+            "config": {
+                "waitBefore": 500,
+                "waitForSelector": ".el-select-dropdown li:visible >> text=\"100条/页\"",
+                "selector": ".el-select-dropdown li:visible >> text=\"100条/页\"",
+                "waitAfter": 0,
+                "validateSelector": ""
+            }
+        },
+        {
+            "id": "1769757269626",
+            "type": "click",
+            "title": "点击全选",
+            "config": {
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/div[4]/div[4]/div[1]/table[1]/thead[1]/tr[1]/th[1]/div[1]/label[1]/span[1]/span[1]",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/div[4]/div[4]/div[1]/table[1]/thead[1]/tr[1]/th[1]/div[1]/label[1]/span[1]/span[1]",
+                "waitAfter": 0,
+                "validateSelector": ""
+            }
+        },
+        {
+            "id": "1769757541952",
+            "type": "click",
+            "title": "点击导出",
+            "config": {
+                "waitBefore": 500,
+                "waitForSelector": "span >> text=\"导出\"",
+                "selector": "span >> text=\"导出\"",
+                "waitAfter": "5000",
+                "validateSelector": ""
+            }
+        },
+        {
+            "id": "1769757628472",
+            "type": "dropdown_select",
+            "title": "下拉智能选择",
+            "config": {
+                "waitBefore": 500,
+                "waitForSelector": "",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/form[1]/div[4]/div[4]/div[1]/div[1]/div[1]/div[1]/input[1]",
+                "optionSelector": "li",
+                "value": "场景",
+                "inputType": "fixed",
+                "expandMethod": "hover",
+                "waitAfter": 0,
+                "validateSelector": ""
+            }
+        },
+        {
+            "id": "1769757645691",
+            "type": "click",
+            "title": "点击查询 (Copy)",
+            "config": {
+                "waitBefore": 500,
+                "waitForSelector": "span >> text=\"查询\"",
+                "selector": "span >> text=\"查询\"",
+                "waitAfter": "3000",
+                "validateSelector": ""
+            }
+        },
+        {
+            "id": "1769757678250",
+            "type": "click",
+            "title": "点击元素 (Copy)",
+            "config": {
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/div[5]/div[1]/span[2]/div[1]/div[1]/span[1]/span[1]/i[1]",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/div[5]/div[1]/span[2]/div[1]/div[1]/span[1]/span[1]/i[1]",
+                "waitAfter": 0,
+                "validateSelector": ""
+            }
+        },
+        {
+            "id": "1769757695120",
+            "type": "click",
+            "title": "点击元素 (Copy)",
+            "config": {
+                "waitBefore": 500,
+                "waitForSelector": ".el-select-dropdown li:visible >> text=\"100条/页\"",
+                "selector": ".el-select-dropdown li:visible >> text=\"100条/页\"",
+                "waitAfter": 0,
+                "validateSelector": ""
+            }
+        },
+        {
+            "id": "1769757702767",
+            "type": "click",
+            "title": "点击全选 (Copy)",
+            "config": {
+                "waitBefore": 500,
+                "waitForSelector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/div[4]/div[4]/div[1]/table[1]/thead[1]/tr[1]/th[1]/div[1]/label[1]/span[1]/span[1]",
+                "selector": "//*[@id=\"app\"]/div[1]/div[2]/section[1]/div[1]/div[2]/div[4]/div[4]/div[1]/table[1]/thead[1]/tr[1]/th[1]/div[1]/label[1]/span[1]/span[1]",
+                "waitAfter": 0,
+                "validateSelector": ""
+            }
+        },
+        {
+            "id": "1769757662846",
+            "type": "click",
+            "title": "点击导出 (Copy)",
+            "config": {
+                "waitBefore": 500,
+                "waitForSelector": "span >> text=\"导出\"",
+                "selector": "span >> text=\"导出\"",
+                "waitAfter": "5000",
+                "validateSelector": ""
+            }
+        }
+    ]
+}

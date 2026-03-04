@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Playwright 编辑器</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="bg-[#1e1e1e] text-gray-200 font-sans h-screen flex overflow-hidden">
+
+    <!-- Left Sidebar: Component Lib -->
+    <aside class="w-64 border-r border-gray-700 flex flex-col p-4 bg-[#1e1e1e]">
+        <h2 class="text-xl font-bold mb-6 text-white">组件库</h2>
+        <div class="space-y-3 flex-1 overflow-y-auto">
+            <button onclick="addStep('excel_read')" class="btn-component">
+                <i class="fa-solid fa-table w-6 text-center"></i> Excel 读取
+            </button>
+            <button onclick="addStep('record_excel')" class="btn-component hidden">
+                <i class="fa-solid fa-file-excel w-6 text-center"></i> 记录结果
+            </button>
+            <button onclick="addStep('open_url')" class="btn-component">
+                <i class="fa-solid fa-link w-6 text-center"></i> 打开链接
+            </button>
+            <button onclick="addStep('label_input')" class="btn-component">
+                <i class="fa-solid fa-tags w-6 text-center"></i> 标签输入
+            </button>
+            <button onclick="addStep('input_text')" class="btn-component">
+                <i class="fa-solid fa-pen-to-square w-6 text-center"></i> 输入文本
+            </button>
+            <button onclick="addStep('upload_file')" class="btn-component">
+                <i class="fa-solid fa-file-arrow-up w-6 text-center"></i> 文件上传
+            </button>
+            <button onclick="addStep('click')" class="btn-component">
+                <i class="fa-solid fa-computer-mouse w-6 text-center"></i> 点击元素
+            </button>
+            <button onclick="addStep('dropdown_select')" class="btn-component">
+                <i class="fa-solid fa-list-ul w-6 text-center"></i> 下拉智能选择
+            </button>
+            <button onclick="addStep('wait')" class="btn-component hidden">
+                <i class="fa-solid fa-hourglass-start w-6 text-center"></i> 等待/检测
+            </button>
+            <button onclick="addStep('keyboard')" class="btn-component hidden">
+                <i class="fa-solid fa-keyboard w-6 text-center"></i> 键盘模拟
+            </button>
+        </div>
+
+
+        <div class="mt-4 space-y-2 pt-4 border-t border-gray-700">
+            <button class="btn w-full bg-yellow-600 hover:bg-yellow-500 text-white mb-2" onclick="handleSchemeNav()">
+                <i class="fa-solid fa-folder-open w-6 text-center"></i> 方案管理
+            </button>
+            <button id="run-btn" class="btn w-full bg-purple-600 hover:bg-purple-700 text-white">
+                <i class="fa-solid fa-play w-6 text-center"></i> 运行流程
+            </button>
+            <button id="stop-btn"
+                class="btn w-full bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled>
+                <i class="fa-solid fa-stop w-6 text-center"></i> 停止流程
+            </button>
+            <button id="save-btn" class="btn w-full bg-gray-700 hover:bg-gray-600 text-white">
+                <i class="fa-solid fa-floppy-disk w-6 text-center"></i> 保存流程
+            </button>
+            <button onclick="clearSteps()" class="btn w-full bg-red-900/50 hover:bg-red-900 text-red-200">
+                <i class="fa-solid fa-trash w-6 text-center"></i> 清空
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Canvas -->
+    <main class="flex-1 bg-[#121212] p-8 overflow-y-auto relative flex flex-col">
+        <div id="canvas-container" class="max-w-3xl mx-auto w-full space-y-4 pb-20">
+            <!-- Steps will be rendered here -->
+            <div id="empty-state"
+                class="text-center text-gray-500 mt-20 border-2 border-dashed border-gray-700 p-10 rounded-lg select-none">
+                点击左侧组件开始搭建流程
+            </div>
+        </div>
+    </main>
+
+    <!-- Right Sidebar: Properties -->
+    <aside class="w-80 border-l border-gray-700 bg-[#1e1e1e] p-4 flex flex-col overflow-y-auto">
+        <h2 class="text-xl font-bold mb-6 text-white">属性设置</h2>
+        <div id="properties-content" class="space-y-6">
+            <p class="text-gray-500 text-center mt-10">请选择一个步骤以设置属性</p>
+        </div>
+    </aside>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
