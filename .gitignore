@@ -11,6 +11,9 @@ logs/
 # User data
 user_data/
 
+# Flows (user scripts)
+flows/
+
 # Python
 __pycache__/
 *.pyc
