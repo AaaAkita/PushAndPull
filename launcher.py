@@ -39,26 +39,42 @@ class LauncherApp:
         
         ttk.Button(control_frame, text="打开编辑器界面", command=self.open_ui).pack(side="right", padx=5)
 
-        # Log Frame
+        # Log Frame - Split into stdout/stderr
         log_frame = ttk.LabelFrame(self.root, text="运行日志 (Logs)", padding="10")
         log_frame.pack(fill="both", expand=True, padx=10, pady=5)
 
-        self.log_area = scrolledtext.ScrolledText(log_frame, state='disabled', height=15)
-        self.log_area.pack(fill="both", expand=True)
-        # Configure tag for red text
-        self.log_area.tag_config("error", foreground="red")
+        # Split stdout/stderr to avoid red backend spam hiding normal logs
+        paned = ttk.PanedWindow(log_frame, orient=tk.VERTICAL)
+        paned.pack(fill="both", expand=True)
+
+        out_frame = ttk.LabelFrame(paned, text="日志输出 (stdout)")
+        err_frame = ttk.LabelFrame(paned, text="后端/错误 (stderr)")
+        paned.add(out_frame, weight=3)
+        paned.add(err_frame, weight=1)
+
+        self.stdout_area = scrolledtext.ScrolledText(out_frame, state='disabled', height=12)
+        self.stdout_area.pack(fill="both", expand=True)
+
+        self.stderr_area = scrolledtext.ScrolledText(err_frame, state='disabled', height=6)
+        self.stderr_area.pack(fill="both", expand=True)
+        self.stderr_area.tag_config("error", foreground="red")
 
         # Status Bar
         self.status_var = tk.StringVar(value="状态: 已停止")
         self.status_bar = ttk.Label(self.root, textvariable=self.status_var, relief="sunken", anchor="w")
         self.status_bar.pack(side="bottom", fill="x")
 
+    def _append_text(self, widget, msg, tag=None):
+        widget.config(state='normal')
+        widget.insert(tk.END, msg + "\n", tag)
+        widget.see(tk.END)
+        widget.config(state='disabled')
+
     def log_message(self, msg, is_error=False):
-        self.log_area.config(state='normal')
-        tag = "error" if is_error else None
-        self.log_area.insert(tk.END, msg + "\n", tag)
-        self.log_area.see(tk.END)
-        self.log_area.config(state='disabled')
+        if is_error:
+            self._append_text(self.stderr_area, msg, "error")
+        else:
+            self._append_text(self.stdout_area, msg)
 
     def cleanup_port(self, port):
         """Check and kill process occupying the port."""
