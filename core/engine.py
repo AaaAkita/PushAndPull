@@ -607,11 +607,34 @@ class PlaywrightWorker(threading.Thread):
                  status_val = "成功" if row_success else (failure_reason if failure_reason else "失败")
                  if record_column not in df.columns: df[record_column] = ""
                  df.at[i, record_column] = status_val
-                 try:
-                     df.to_excel(excel_path, index=False)
-                     self.log(f"已记录 '{status_val}' 到Excel的第 {i+1} 行")
-                 except Exception as exc:
-                     self.log(f"写入Excel失败: {exc}", "ERROR")
+                 write_ok = False
+                 for attempt in range(3):
+                     try:
+                         df.to_excel(excel_path, index=False)
+                         write_ok = True
+                         self.log(f"已记录 '{status_val}' 到Excel的第 {i+1} 行")
+                         break
+                     except PermissionError as exc:
+                         if attempt < 2:
+                             self.log(f"写入Excel被占用，第 {attempt + 1} 次重试...", "WARNING")
+                             time.sleep(1)
+                         else:
+                             self.log(f"写入Excel失败(权限被拒绝): 第 {i+1} 行结果未持久化，请关闭Excel后重试。", "ERROR")
+                     except Exception as exc:
+                         self.log(f"写入Excel失败: {exc}", "ERROR")
+                         break
+                 if not write_ok:
+                     # Fallback: write to backup file
+                     try:
+                         backup_dir = os.path.join(os.path.dirname(os.path.abspath(excel_path)), "backup")
+                         if not os.path.exists(backup_dir):
+                             os.makedirs(backup_dir)
+                         base_name = os.path.splitext(os.path.basename(excel_path))[0]
+                         backup_path = os.path.join(backup_dir, f"{base_name}_backup_{time.strftime('%Y%m%d_%H%M%S')}.xlsx")
+                         df.to_excel(backup_path, index=False)
+                         self.log(f"已写入备份文件: {backup_path}", "WARNING")
+                     except Exception as backup_exc:
+                         self.log(f"备份写入也失败: {backup_exc}", "ERROR")
 
         self.is_execution_active = False
         return {"logs": results, "success": True}

@@ -1,6 +1,7 @@
 from .base import BaseStep
 from .registry import StepRegistry
 import time
+import os
 
 class ClickStep(BaseStep):
     def execute(self):
@@ -39,18 +40,25 @@ class InputTextStep(BaseStep):
         raw_selector = config.get('selector')
         input_type = config.get('inputType', 'fixed')
         raw_value = config.get('value', '')
-        
+
         selector = self.resolve_sel(self.replace_vars(raw_selector))
-        
+
         if input_type == 'excel':
             value = str(self.context.row.get(raw_value, ""))
         else:
             value = self.replace_vars(str(raw_value))
-        
+
         if selector:
-            self.context.page.fill(selector, value, timeout=self.get_timeout())
+            page = self.context.page
+            handle = page.query_selector(selector)
+            if handle:
+                is_editable = handle.evaluate("el => !el.readOnly && !el.disabled")
+                if not is_editable:
+                    self.log("输入失败: 目标元素为只读或禁用状态", "ERROR")
+                    return False
+            page.fill(selector, value, timeout=self.get_timeout())
             self.log(f"已输入 '{value}' 到 {selector}")
-            
+
         return True
 
 class LabelInputStep(BaseStep):
@@ -108,19 +116,27 @@ class UploadFileStep(BaseStep):
         else:
             file_path = self.replace_vars(raw_path)
         
+        # Normalize path: strip whitespace, fix mixed slashes, prevent double-concatenation
+        file_path = file_path.strip()
+        file_path = os.path.normpath(file_path)
+
+        if not os.path.exists(file_path):
+            self.log(f"上传失败: 文件不存在 '{file_path}'", "ERROR")
+            return False
+
         if not selector or not file_path:
             self.log("上传失败: 选择器或文件路径缺失", "ERROR")
             return False
-            
+
         try:
             # We should probably handle timeout better here
             timeout = self.get_timeout()
             page.wait_for_selector(selector, state="attached", timeout=timeout)
             handle = page.query_selector(selector)
             if not handle: raise Exception("Element not found")
-            
+
             is_file_input = handle.evaluate("el => el.tagName === 'INPUT' && el.type === 'file'")
-            
+
             if is_file_input:
                 page.set_input_files(selector, file_path, timeout=timeout)
                 self.log(f"已上传 {file_path}")
@@ -205,16 +221,26 @@ class DropdownSelectStep(BaseStep):
                     self.log(f"Found Exact Match: '{text}'")
                     break
             
-            # Strategy 2: Partial Match (Fallback)
+            # Strategy 2: Start-With Match (Safer fallback)
+            if not best_match:
+                for opt in visible_options:
+                    text = opt.inner_text().strip()
+                    if text.startswith(part):
+                        best_match = opt
+                        match_text = text
+                        self.log(f"Found Start-With Match: '{text}' (for '{part}')")
+                        break
+
+            # Strategy 3: Substring Match (Last resort)
             if not best_match:
                 for opt in visible_options:
                     text = opt.inner_text().strip()
                     if part in text:
                         best_match = opt
                         match_text = text
-                        self.log(f"Found Partial Match: '{text}' (for '{part}')")
+                        self.log(f"Found Substring Match: '{text}' (for '{part}')")
                         break
-            
+
             if best_match:
                 opt = best_match
                 opt.scroll_into_view_if_needed()
