@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Picker Test Page</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .login-panel { background: #f5f5f5; padding: 15px; }
+        .submit-btn { background: #409eff; color: white; padding: 8px 16px; border: none; cursor: pointer; }
+        .el-select-dropdown { border: 1px solid #e4e7ed; padding: 5px 0; }
+        .el-select-dropdown__item { padding: 8px 16px; cursor: pointer; list-style: none; }
+        .el-select-dropdown__item:hover { background: #f5f7fa; }
+    </style>
+</head>
+<body>
+    <div class="section">
+        <h2>P1 测试属性</h2>
+        <button data-testid="submit-order" class="submit-btn">P1按钮</button>
+    </div>
+
+    <div class="section">
+        <h2>P2 静态 ID</h2>
+        <input id="username" type="text" placeholder="请输入用户名">
+    </div>
+
+    <div class="section">
+        <h2>P3 父级 ID 锚定</h2>
+        <div id="login-form" class="login-panel">
+            <div><span>用户名</span><input type="text" class="user-text"></div>
+            <div><span>密码</span><input type="password" class="pwd-text"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>P4 ElementUI 文本</h2>
+        <ul class="el-select-dropdown">
+            <li class="el-select-dropdown__item">选项A</li>
+            <li class="el-select-dropdown__item">选项B</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>P5 语义属性</h2>
+        <input type="text" name="email" placeholder="请输入邮箱">
+    </div>
+
+    <div class="section">
+        <h2>P6 Label 关联</h2>
+        <div id="form-section">
+            <div><label for="dynamic-1">邮箱</label><input type="text" id="dynamic-1"></div>
+            <div><span>姓名</span><input type="text" id="dynamic-2"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>P7 可见文本</h2>
+        <button>P7普通按钮</button>
+        <a href="#">P7链接文本</a>
+    </div>
+
+    <div class="section">
+        <h2>P8 唯一类组合</h2>
+        <div class="register-panel custom-box">
+            <input type="text" class="form-input username-field">
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>P9/P10 兜底</h2>
+        <div>
+            <span>无稳定特征元素</span>
+            <input type="text">
+        </div>
+        <div>
+            <b></b>
+            <input type="text">
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('dynamic-1').id = 'el-input-' + (1000 + Math.floor(Math.random() * 9000));
+        document.getElementById('dynamic-2').id = 'el-input-' + (1000 + Math.floor(Math.random() * 9000));
+    </script>
+</body>
+</html>

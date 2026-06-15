@@ -123,22 +123,64 @@ function createInput(label, keyPath, value, type = 'text') {
     `;
 }
 
-function createSelectorInput(label, configKey, value) {
+function createSelectorInput(label, configKey, value, step=null) {
     // Strip 'config.' prefix if present for updateConfig
     const pureKey = configKey.startsWith('config.') ? configKey.split('.')[1] : configKey;
+
+    let metaHtml = '';
+    if (step && pureKey === 'selector' && step.config._pickerMeta) {
+        const meta = step.config._pickerMeta;
+        const strategyLabels = {
+            'test-attribute': '测试属性',
+            'static-id': '静态 ID',
+            'parent-id-anchor': '父级 ID 锚定',
+            'elementui-text': 'ElementUI 文本',
+            'semantic-attr': '语义属性',
+            'label-association': 'Label 关联',
+            'visible-text': '可见文本',
+            'unique-class': '唯一类组合',
+            'relative-xpath': '相对 XPath',
+            'absolute-xpath': '绝对 XPath',
+            'unknown': '未知策略'
+        };
+        const confidenceColors = {
+            'high': 'text-green-400',
+            'medium': 'text-yellow-400',
+            'low': 'text-red-400'
+        };
+        const confidenceLabels = {
+            'high': '高',
+            'medium': '中',
+            'low': '低'
+        };
+        const strategyName = strategyLabels[meta.strategy] || meta.strategy;
+        const confClass = confidenceColors[meta.confidence] || 'text-gray-400';
+        const confName = confidenceLabels[meta.confidence] || meta.confidence;
+        const warnings = (meta.warnings || []).map(w => `<li class="text-red-400">⚠️ ${w}</li>`).join('');
+        metaHtml = `
+            <div class="mt-1 text-xs space-y-1">
+                <div class="flex gap-2">
+                    <span class="text-gray-400">策略: <span class="text-blue-300">${strategyName}</span></span>
+                    <span class="text-gray-400">置信度: <span class="${confClass}">${confName}</span></span>
+                </div>
+                ${warnings ? `<ul class="list-disc pl-4">${warnings}</ul>` : ''}
+            </div>
+        `;
+    }
 
     return `
         <div class="form-group mb-4">
             <label class="label">${label}</label>
             <div class="flex gap-2 items-start">
-                <textarea 
-                       oninput="updateConfig('${pureKey}', this.value)" 
-                       class="input-dark flex-1 font-mono text-xs" 
+                <textarea
+                       oninput="updateConfig('${pureKey}', this.value)"
+                       class="input-dark flex-1 font-mono text-xs"
                        rows="3"
                        placeholder="#id or //xpath"
                        id="input-${pureKey}">${value || ''}</textarea>
                 <button class="btn-icon h-8" onclick="pickSelector('${pureKey}')" title="Pick from Browser">🎯</button>
             </div>
+            ${metaHtml}
         </div>
     `;
 }
@@ -155,7 +197,7 @@ function createValidationBlock(step) {
                 若未设置，则为<b>固定等待时间</b>。
             </div>
 
-            ${createSelectorInput('验证元素出现', 'config.validateSelector', step.config.validateSelector)}
+            ${createSelectorInput('验证元素出现', 'config.validateSelector', step.config.validateSelector, step)}
             <div class="mt-2 text-xs text-gray-500">
                 <i class="fa-solid fa-triangle-exclamation text-yellow-600"></i>
                 如果不为空，将在操作后持续检测该元素。<br>
@@ -182,7 +224,7 @@ export function renderProperties() {
 
     // Selector Wait (Common for interaction steps)
     if (['click', 'input_text', 'upload_file', 'keyboard_map'].includes(step.type)) {
-        html += createSelectorInput('等待元素出现', 'waitForSelector', step.config.waitForSelector);
+        html += createSelectorInput('等待元素出现', 'waitForSelector', step.config.waitForSelector, step);
         html += '<hr class="border-gray-700 my-4">';
     }
 
@@ -200,18 +242,18 @@ export function renderProperties() {
                 </div>
                 <div id="login-fallback-${state.activeStepIndex}" class="space-y-2">
                     <p class="text-xs text-gray-500 mb-2">如果跳转到登录页，尝试自动登录。</p>
-                    ${createSelectorInput('账号输入框', 'config.loginUserSelector', step.config.loginUserSelector)}
+                    ${createSelectorInput('账号输入框', 'config.loginUserSelector', step.config.loginUserSelector, step)}
                     ${createInput('账号', 'config.loginUser', step.config.loginUser)}
-                    ${createSelectorInput('密码输入框', 'config.loginPassSelector', step.config.loginPassSelector)}
+                    ${createSelectorInput('密码输入框', 'config.loginPassSelector', step.config.loginPassSelector, step)}
                     ${createInput('密码 - 明文存储', 'config.loginPass', step.config.loginPass)}
-                    ${createSelectorInput('登录按钮', 'config.loginBtnSelector', step.config.loginBtnSelector)}
+                    ${createSelectorInput('登录按钮', 'config.loginBtnSelector', step.config.loginBtnSelector, step)}
                 </div>
             </div>
         `;
         html += createValidationBlock(step);
     }
     else if (step.type === 'input_text' || step.type === 'label_input') {
-        html += createSelectorInput('目标元素定位', 'config.selector', step.config.selector);
+        html += createSelectorInput('目标元素定位', 'config.selector', step.config.selector, step);
 
         html += `
             <div class="form-group mb-4">
@@ -263,14 +305,14 @@ export function renderProperties() {
         }
     }
     else if (step.type === 'click') {
-        html += createSelectorInput('元素定位', 'config.selector', step.config.selector);
+        html += createSelectorInput('元素定位', 'config.selector', step.config.selector, step);
         html += createValidationBlock(step);
     }
     else if (step.type === 'wait') {
         html += createInput('等待时间 (ms)', 'config.time', step.config.time, 'number');
     }
     else if (step.type === 'keyboard') {
-        html += createSelectorInput('先点击/聚焦元素', 'config.selector', step.config.selector);
+        html += createSelectorInput('先点击/聚焦元素', 'config.selector', step.config.selector, step);
         html += `
             <div class="text-xs text-gray-400 mt-1 mb-4 pl-1">
                 <i class="fa-solid fa-lightbulb text-yellow-500"></i> 若指定，会先点击该元素获取焦点，再发送按键。
@@ -319,7 +361,7 @@ export function renderProperties() {
         }
     }
     else if (step.type === 'upload_file') {
-        html += createSelectorInput('上传按钮/输入框', 'config.selector', step.config.selector);
+        html += createSelectorInput('上传按钮/输入框', 'config.selector', step.config.selector, step);
 
         html += `
             <div class="form-group mb-4">
@@ -370,8 +412,8 @@ export function renderProperties() {
         html += createValidationBlock(step);
     }
     else if (step.type === 'dropdown_select') {
-        html += createSelectorInput('触发下拉框', 'config.selector', step.config.selector);
-        html += createSelectorInput('选项元素', 'config.optionSelector', step.config.optionSelector || 'li');
+        html += createSelectorInput('触发下拉框', 'config.selector', step.config.selector, step);
+        html += createSelectorInput('选项元素', 'config.optionSelector', step.config.optionSelector || 'li', step);
         html += `
             <div class="text-xs text-gray-400 mt-1 mb-4 pl-1">
                 <i class="fa-solid fa-lightbulb text-yellow-500"></i> 

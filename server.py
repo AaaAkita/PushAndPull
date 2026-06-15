@@ -28,11 +28,19 @@ def run_picker():
     try:
         data = request.json
         # url is optional now. If provided, it navigates. If not, picks from current page.
-        url = data.get('url') # Can be None/Empty
-        
-        selector = pick_debug_element(url)
-        if selector:
-            return jsonify({"status": "success", "selector": selector})
+        url = data.get('url')  # Can be None/Empty
+
+        result = pick_debug_element(url)
+        if result:
+            # Backward compatibility: wrap legacy string return
+            if isinstance(result, str):
+                result = {
+                    "selector": result,
+                    "strategy": "unknown",
+                    "confidence": "low",
+                    "warnings": ["无法识别生成策略"]
+                }
+            return jsonify({"status": "success", **result})
         else:
             return jsonify({"status": "error", "message": "Selection timed out or failed"}), 408
     except Exception as e:

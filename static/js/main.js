@@ -230,6 +230,13 @@ async function pickSelector(configKey) {
     if (data.status === 'success') {
         const selector = data.selector;
         updateConfig(configKey, selector);
+        // Store picker metadata for UI display
+        const meta = {
+            strategy: data.strategy || 'unknown',
+            confidence: data.confidence || 'low',
+            warnings: data.warnings || []
+        };
+        updateConfig('_pickerMeta', meta);
         alert(`已拾取: ${selector}`);
         UI.renderProperties();
     } else {
