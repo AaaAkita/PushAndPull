@@ -375,6 +375,16 @@ class PlaywrightWorker(threading.Thread):
                     return count;
                 };
 
+                // Count visible LABEL elements whose text contains `txt`.
+                const countVisibleLabelsByText = (txt) => {
+                    let count = 0;
+                    for (const lbl of document.querySelectorAll('label')) {
+                        if (!isVisible(lbl)) continue;
+                        if (lbl.innerText && lbl.innerText.trim().includes(txt)) count++;
+                    }
+                    return count;
+                };
+
                 const getAnchor = (elm) => {
                     // 1. self or ancestor static id
                     if (elm.id && !isDynamicString(elm.id)) {
@@ -412,7 +422,6 @@ class PlaywrightWorker(threading.Thread):
                 };
 
                 const getAbsoluteXPath = (node) => {
-                    if (node.id !== '') return 'xpath=//*[@id="' + node.id + '"]';
                     if (node === document.body) return 'xpath=/html/body';
                     if (!node.parentNode) return '';
                     let ix = 0;
@@ -428,10 +437,11 @@ class PlaywrightWorker(threading.Thread):
                 const getRelativeXPath = (elm) => {
                     const anchor = getAnchor(elm);
                     if (!anchor) return null;
-                    // Build a relative xpath within the anchor
+                    // Build a path from anchor to elm.
+                    // Playwright does NOT support "css >> xpath=./div[1]/..." with a leading dot,
+                    // so we convert the path to a CSS child combinator chain instead.
                     const anchorNode = anchor.node;
-                    // path from anchor to elm
-                    let path = '';
+                    const parts = [];
                     let node = elm;
                     while (node && node !== anchorNode && node !== document.body) {
                         let ix = 0;
@@ -439,19 +449,19 @@ class PlaywrightWorker(threading.Thread):
                         for (let i = 0; i < siblings.length; i++) {
                             let sibling = siblings[i];
                             if (sibling === node) {
-                                path = '/' + node.tagName.toLowerCase() + '[' + (ix + 1) + ']' + path;
+                                parts.unshift(`${node.tagName.toLowerCase()}:nth-of-type(${ix + 1})`);
                                 break;
                             }
                             if (sibling.nodeType === 1 && sibling.tagName === node.tagName) ix++;
                         }
                         node = node.parentElement;
                     }
-                    if (path) {
+                    if (parts.length) {
                         return {
-                            selector: `${anchor.selector} >> xpath=.${path}`,
-                            strategy: 'relative-xpath',
+                            selector: `${anchor.selector} > ${parts.join(' > ')}`,
+                            strategy: 'relative-css-path',
                             confidence: 'low',
-                            warnings: ['相对 XPath 依赖局部 DOM 结构']
+                            warnings: ['相对路径依赖局部 DOM 结构']
                         };
                     }
                     return null;
@@ -465,7 +475,7 @@ class PlaywrightWorker(threading.Thread):
                     const tagName = elm.tagName;
                     const lowerTag = tagName.toLowerCase();
 
-                    // P1: test attributes
+                    // P1: test attributes (self, then nearest ancestor)
                     for (let attr of testAttrs) {
                         if (elm.hasAttribute(attr)) {
                             const val = elm.getAttribute(attr);
@@ -473,6 +483,10 @@ class PlaywrightWorker(threading.Thread):
                                 return makeResult(`[${attr}="${escapeText(val)}"]`, 'test-attribute', 'high');
                             }
                         }
+                    }
+                    const testAncestor = findTestAttrAncestor(elm);
+                    if (testAncestor) {
+                        return makeResult(`[${testAncestor.attr}="${escapeText(testAncestor.val)}"]`, 'test-attribute', 'high');
                     }
 
                     // P2: stable static ID
@@ -486,7 +500,11 @@ class PlaywrightWorker(threading.Thread):
                         const anchorSel = '#' + CSS.escape(idAncestor.id);
                         const directCount = countBySelector(`${anchorSel} > ${lowerTag}`);
                         const descendantCount = countBySelector(`${anchorSel} ${lowerTag}`);
-                        if (directCount === 1 || (directCount === 0 && descendantCount === 1)) {
+                        if (directCount === 1) {
+                            // Use child combinator '>' to avoid matching nested grandchildren
+                            return makeResult(`${anchorSel} > ${lowerTag}`, 'parent-id-anchor', 'high');
+                        }
+                        if (directCount === 0 && descendantCount === 1) {
                             return makeResult(`${anchorSel} >> ${lowerTag}`, 'parent-id-anchor', 'high');
                         }
                         // If not unique, anchor may still be used by later strategies
@@ -550,6 +568,7 @@ class PlaywrightWorker(threading.Thread):
                     if (isFormControl(tagName)) {
                         let labelText = null;
                         let labelMode = null; // 'implicit', 'explicit', 'adjacent'
+                        let associatedFor = null; // for explicit label[for] fallback
 
                         // Implicit label: label wraps input
                         let implicitLabel = elm.closest('label');
@@ -564,6 +583,33 @@ class PlaywrightWorker(threading.Thread):
                             if (explicitLabel) {
                                 labelText = explicitLabel.innerText.trim();
                                 labelMode = 'explicit';
+                                associatedFor = elm.id;
+                            }
+                        }
+
+                        // ElementUI / horizontal form: label[for] and control share a form-item ancestor
+                        if (!labelText) {
+                            const labels = document.querySelectorAll('label[for]');
+                            for (const lbl of labels) {
+                                const forVal = lbl.getAttribute('for');
+                                if (!forVal || isDynamicString(forVal)) continue;
+
+                                // The label and the control must belong to the same form-item.
+                                // Walk up from the label to find its nearest .el-form-item (or generic form item) container.
+                                let formItem = lbl.closest('.el-form-item');
+                                if (!formItem) {
+                                    let node = lbl.parentElement;
+                                    while (node && node !== document.body) {
+                                        if (node.contains(elm)) { formItem = node; break; }
+                                        node = node.parentElement;
+                                    }
+                                }
+                                if (!formItem || !formItem.contains(elm)) continue;
+
+                                labelText = lbl.innerText.trim();
+                                labelMode = 'explicit';
+                                associatedFor = forVal;
+                                break;
                             }
                         }
 
@@ -585,9 +631,33 @@ class PlaywrightWorker(threading.Thread):
 
                         if (labelText) {
                             const safeLabel = escapeText(labelText);
+
+                            // Prefer human-readable selectors based on the label text.
+                            // Playwright supports "label:has-text(...) ~ ..." style selectors.
                             if (labelMode === 'implicit') {
                                 return makeResult(`label:has-text("${safeLabel}") >> ${lowerTag}`, 'label-association', 'high');
                             }
+
+                            if (labelMode === 'explicit') {
+                                if (countVisibleLabelsByText(labelText) === 1) {
+                                    const eluiPattern = `label:has-text("${safeLabel}") ~ .el-form-item__content ${lowerTag}`;
+                                    return makeResult(eluiPattern, 'label-text-association', 'high');
+                                }
+                            }
+
+                            // Fallback to label[for] if the label text is not unique enough.
+                            if (associatedFor) {
+                                const safeFor = escapeText(associatedFor);
+                                const siblingPattern = `label[for="${safeFor}"] ~ .el-form-item__content ${lowerTag}`;
+                                if (countBySelector(siblingPattern) === 1) {
+                                    return makeResult(siblingPattern, 'label-for-association', 'high');
+                                }
+                                const genericPattern = `label[for="${safeFor}"] ~ * ${lowerTag}`;
+                                if (countBySelector(genericPattern) === 1) {
+                                    return makeResult(genericPattern, 'label-for-association', 'high');
+                                }
+                            }
+
                             // For explicit/adjacent: use ancestor :has-text() disambiguation.
                             // Native querySelectorAll does not support :has-text(), so we count manually.
                             const anc = idAncestor || findStableIdAncestor(elm);
