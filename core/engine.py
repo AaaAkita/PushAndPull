@@ -5,6 +5,8 @@ import os
 import threading
 import queue
 import shutil
+import ctypes
+from ctypes import wintypes
 
 # --- Helpers ---
 
@@ -67,6 +69,34 @@ class PlaywrightWorker(threading.Thread):
             print(f"写入日志文件失败: {e}")
 
 
+    def _minimize_browser_window(self):
+        """
+        Minimize the Chromium/Chrome window after launch so that uploads,
+        refreshes or navigations do not steal foreground focus.
+        """
+        try:
+            user32 = ctypes.windll.user32
+            found = []
+
+            def enum_callback(hwnd, extra):
+                if user32.IsWindowVisible(hwnd):
+                    text = ctypes.create_unicode_buffer(256)
+                    user32.GetWindowTextW(hwnd, text, 256)
+                    title = text.value
+                    if title and ("Chromium" in title or "Chrome" in title):
+                        found.append(hwnd)
+                return True
+
+            EnumWindowsProc = ctypes.WINFUNCTYPE(
+                wintypes.BOOL, wintypes.HWND, wintypes.LPARAM
+            )
+            user32.EnumWindows(EnumWindowsProc(enum_callback), 0)
+
+            for hwnd in found:
+                user32.ShowWindow(hwnd, 6)  # SW_MINIMIZE
+        except Exception as e:
+            self.log(f"最小化浏览器窗口失败: {e}", "WARNING")
+
     def _restart_browser(self):
         self.log("正在重启浏览器会话...", "WARNING")
         try:
@@ -85,6 +115,7 @@ class PlaywrightWorker(threading.Thread):
             )
         self.page = self.context.pages[0] if self.context.pages else self.context.new_page()
         self._setup_binding()
+        self._minimize_browser_window()
 
     def run(self):
         try:
@@ -101,6 +132,7 @@ class PlaywrightWorker(threading.Thread):
 
             self.page = self.context.pages[0] if self.context.pages else self.context.new_page()
             self._setup_binding()
+            self._minimize_browser_window()
 
             self.ready_event.set()
 
