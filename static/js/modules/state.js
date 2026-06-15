@@ -2,7 +2,8 @@ export const state = {
     steps: [],
     activeStepIndex: null,
     currentScheme: null,
-    isDirty: false
+    isDirty: false,
+    flowTitle: '未命名流程'
 };
 
 export function setSteps(newSteps) {
@@ -20,4 +21,8 @@ export function setActiveStepIndex(index) {
 
 export function setCurrentScheme(name) {
     state.currentScheme = name;
+}
+
+export function setFlowTitle(title) {
+    state.flowTitle = title;
 }

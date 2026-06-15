@@ -1,4 +1,4 @@
-import { state, setSteps, setActiveStepIndex, setCurrentScheme } from './modules/state.js';
+import { state, setSteps, setActiveStepIndex, setCurrentScheme, setIsDirty, setFlowTitle } from './modules/state.js';
 import { getTitleByType } from './modules/utils.js';
 import * as API from './modules/api.js';
 import * as UI from './modules/ui.js';
@@ -52,6 +52,7 @@ function selectStep(index) {
     setActiveStepIndex(index);
     UI.renderCanvas(); // Update active state styling
     UI.renderProperties();
+    syncTestButton();
 }
 
 function removeStep(e, index) {
@@ -210,6 +211,7 @@ async function saveScheme() {
         const { setIsDirty, setCurrentScheme } = await import('./modules/state.js');
         setCurrentScheme(name);
         setIsDirty(false); // Reset dirty flag
+        updateSaveStatus(false);
         alert(`方案 [${name}] 保存成功!`);
         // Update URL if new
         const url = new URL(window.location);
@@ -295,80 +297,110 @@ async function testStep(e, index) {
     }
 }
 
+// --- Toolbar Helpers ---
+
+function getElement(id, fallbackId) {
+    return document.getElementById(id) || (fallbackId ? document.getElementById(fallbackId) : null);
+}
+
+function bindBtn(id, fallbackId, handler) {
+    const btn = getElement(id, fallbackId);
+    if (btn) btn.addEventListener('click', handler);
+    return btn;
+}
+
+function updateSaveStatus(isDirty) {
+    const el = document.getElementById('save-status');
+    if (!el) return;
+    if (isDirty) {
+        el.textContent = '未保存';
+        el.classList.add('dirty');
+    } else {
+        el.textContent = '已保存';
+        el.classList.remove('dirty');
+    }
+}
+
+function syncTestButton() {
+    const btn = document.getElementById('test-btn-top');
+    if (btn) btn.disabled = state.activeStepIndex === null;
+}
+
+function updateTitleFromState() {
+    const input = document.getElementById('flow-title');
+    if (input && state.flowTitle) {
+        input.value = state.flowTitle;
+        document.title = state.flowTitle + ' - Visual Playwright';
+    }
+}
+
 // --- Initialization ---
 
 function init() {
-    // Global Buttons
+    const runBtn = getElement('run-btn-top', 'run-btn');
+    const stopBtn = getElement('stop-btn-top', 'stop-btn');
+    const saveBtn = getElement('save-btn-top', 'save-btn');
+
     // Run Button Handler
-    document.getElementById('run-btn').addEventListener('click', async () => {
-        const runBtn = document.getElementById('run-btn');
-        const stopBtn = document.getElementById('stop-btn');
+    if (runBtn) {
+        runBtn.addEventListener('click', async () => {
+            runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 启动中...';
+            runBtn.disabled = true;
 
-        runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 启动中...';
-        runBtn.disabled = true;
+            try {
+                const res = await fetch('/api/execution/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ steps: state.steps, mode: 'normal' })
+                });
+                const data = await res.json();
 
-        // Use Async Start
-        // We use fetch directly or add method to API module. 
-        // For simplicity, let's assume we can use fetch here or we should ideally add to API.js
-        // But since we are editing main.js, let's just do fetch here for the specific endpoints 
-        // OR reuse API.runFlowAPI if we update it? 
-        // Let's stick to fetch for the new endpoints to avoid editing API.js if not needed, 
-        // though clean code suggests updating API.js. 
-        // Let's just do fetch here for valid JSON to be safe.
-
-        try {
-            const res = await fetch('/api/execution/start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steps: state.steps, mode: 'normal' })
-            });
-            const data = await res.json();
-
-            if (data.status === 'success') {
-                runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 运行中...';
-                stopBtn.disabled = false;
-                startPolling();
-            } else {
-                alert("启动失败: " + data.message);
-                runBtn.innerHTML = '<i class="fa-solid fa-play"></i> 运行流程';
+                if (data.status === 'success') {
+                    runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 运行中...';
+                    if (stopBtn) stopBtn.disabled = false;
+                    startPolling();
+                } else {
+                    alert("启动失败: " + data.message);
+                    runBtn.innerHTML = '<i class="fa-solid fa-play"></i> 运行';
+                    runBtn.disabled = false;
+                }
+            } catch (e) {
+                alert("启动请求错误: " + e);
+                runBtn.innerHTML = '<i class="fa-solid fa-play"></i> 运行';
                 runBtn.disabled = false;
             }
-        } catch (e) {
-            alert("启动请求错误: " + e);
-            runBtn.innerHTML = '<i class="fa-solid fa-play"></i> 运行流程';
-            runBtn.disabled = false;
-        }
-    });
+        });
+    }
 
     // Stop Button Handler
-    document.getElementById('stop-btn').addEventListener('click', async () => {
-        if (!confirm("确定要停止运行吗?")) return;
-
-        const stopBtn = document.getElementById('stop-btn');
-        stopBtn.disabled = true; // Prevent double click
-        stopBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 停止中...';
-
-        try {
-            await fetch('/api/execution/stop', { method: 'POST' });
-        } catch (e) {
-            console.error("Stop failed", e);
-        }
-    });
+    if (stopBtn) {
+        stopBtn.addEventListener('click', async () => {
+            if (!confirm("确定要停止运行吗?")) return;
+            stopBtn.disabled = true;
+            stopBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 停止中...';
+            try {
+                await fetch('/api/execution/stop', { method: 'POST' });
+            } catch (e) {
+                console.error("Stop failed", e);
+            }
+        });
+    }
 
     // Polling Logic
     let pollInterval = null;
-    let lastLogCount = 0; // To show only new logs if we wanted, but UI usually doesn't show logs live in this version?
-    // Wait, the previous code showed alert ONLY at the end.
-    // "res.logs ... join"
-    // The user wants to see logs? The original requirement didn't explicitly say "show logs live", 
-    // but the original run button showed an alert at the end with logs.
-    // If we run async, we can't alert at the end easily if the user closes the tab.
-    // But if the tab is open, we should probably show logs or at least status.
-    // Since there is no log console in the UI (only empty-state or canvas), 
-    // maybe we should just accumulate logs and alert at the end like before?
-    // Or just console.log for now?
-    // The previous implementation: alert('流程执行完成!\n' + (res.logs || []).join('\n'));
-    // We should try to replicate this behavior: when finished, show alert.
+
+    function resetRunButtons() {
+        const rb = getElement('run-btn-top', 'run-btn');
+        const sb = getElement('stop-btn-top', 'stop-btn');
+        if (rb) {
+            rb.innerHTML = '<i class="fa-solid fa-play"></i> 运行';
+            rb.disabled = false;
+        }
+        if (sb) {
+            sb.innerHTML = '<i class="fa-solid fa-stop"></i> 停止';
+            sb.disabled = true;
+        }
+    }
 
     function startPolling() {
         if (pollInterval) clearInterval(pollInterval);
@@ -379,20 +411,13 @@ function init() {
                 const data = await res.json();
 
                 if (data.status === 'success') {
-                    const info = data.data; // { is_running: bool, logs: [] }
+                    const info = data.data;
 
                     if (!info.is_running) {
-                        // Finished
                         clearInterval(pollInterval);
                         pollInterval = null;
+                        resetRunButtons();
 
-                        document.getElementById('run-btn').innerHTML = '<i class="fa-solid fa-play"></i> 运行流程';
-                        document.getElementById('run-btn').disabled = false;
-                        document.getElementById('stop-btn').innerHTML = '<i class="fa-solid fa-stop"></i> 停止流程';
-                        document.getElementById('stop-btn').disabled = true;
-
-                        // Check if it was stopped or finished naturally?
-                        // The logs usually contain the info.
                         const finalLogs = info.logs || [];
                         const lastLog = finalLogs[finalLogs.length - 1] || "";
 
@@ -401,10 +426,6 @@ function init() {
                         } else {
                             alert("流程执行完成!\n" + finalLogs.join('\n'));
                         }
-                    } else {
-                        // Still running
-                        // We could update UI to show log count or last log?
-                        // For now just keep spinning
                     }
                 }
             } catch (e) {
@@ -413,17 +434,17 @@ function init() {
         }, 1000);
     }
 
-    // Check status on load in case page was refreshed while running
-    checkInitialStatus();
-
     async function checkInitialStatus() {
         try {
             const res = await fetch('/api/execution/status');
             const data = await res.json();
             if (data.status === 'success' && data.data && data.data.is_running) {
-                document.getElementById('run-btn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 运行中...';
-                document.getElementById('run-btn').disabled = true;
-                document.getElementById('stop-btn').disabled = false;
+                const rb = getElement('run-btn-top', 'run-btn');
+                if (rb) {
+                    rb.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 运行中...';
+                    rb.disabled = true;
+                }
+                if (stopBtn) stopBtn.disabled = false;
                 startPolling();
             }
         } catch (e) {
@@ -431,12 +452,42 @@ function init() {
         }
     }
 
-    document.getElementById('save-btn').addEventListener('click', async () => {
-        const success = await saveScheme();
-        if (success) {
-            // Already alert inside saveScheme
-        }
-    });
+    checkInitialStatus();
+
+    // Save Button Handler
+    if (saveBtn) {
+        saveBtn.addEventListener('click', async () => {
+            await saveScheme();
+        });
+    }
+
+    // Test Button Handler
+    const testBtn = document.getElementById('test-btn-top');
+    if (testBtn) {
+        testBtn.addEventListener('click', () => {
+            if (state.activeStepIndex !== null) {
+                testStep(null, state.activeStepIndex);
+            }
+        });
+    }
+
+    // Flow Title Editing
+    const titleInput = document.getElementById('flow-title');
+    if (titleInput) {
+        titleInput.addEventListener('change', () => {
+            const value = titleInput.value.trim() || '未命名流程';
+            setFlowTitle(value);
+            document.title = value + ' - Visual Playwright';
+        });
+        titleInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') titleInput.blur();
+        });
+    }
+
+    // Save status polling
+    setInterval(() => {
+        updateSaveStatus(state.isDirty);
+    }, 500);
 
     // Make global for inline handlers
     window.addStep = addStep;
@@ -461,6 +512,9 @@ function init() {
     if (id) {
         loadSchemeById(id);
     }
+
+    updateTitleFromState();
+    syncTestButton();
 
     // Render initial state
     UI.renderCanvas();

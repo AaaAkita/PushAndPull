@@ -11,8 +11,31 @@ export function renderCanvas() {
 
     if (state.steps.length === 0) {
         canvasContainer.innerHTML = `
-            <div id="empty-state" class="text-center text-tertiary mt-20 border-2 border-dashed border p-10 rounded-lg select-none">
-                点击左侧组件开始搭建流程
+            <div id="empty-state" class="empty-z select-none fade-in">
+                <div class="empty-z-brand">
+                    <i class="fa-solid fa-layer-group text-brand"></i>
+                    <span>Visual Playwright</span>
+                </div>
+                <div class="empty-z-help">
+                    <a href="https://github.com/AnxForever/stylekit" target="_blank" class="text-sm text-tertiary hover:text-primary">
+                        <i class="fa-solid fa-circle-question"></i> 使用帮助
+                    </a>
+                </div>
+                <div class="empty-z-center">
+                    <h1>开始搭建你的自动化流程</h1>
+                    <p>从左侧组件库选择步骤，拖拽排序，右侧配置属性</p>
+                    <button class="btn-apple" onclick="addStep('open_url')">
+                        <i class="fa-solid fa-plus"></i> 添加第一个步骤
+                    </button>
+                </div>
+                <div class="empty-z-trust">
+                    <i class="fa-solid fa-shield-halved text-success"></i> 本地执行，数据安全
+                </div>
+                <div class="empty-z-secondary">
+                    <button class="btn btn-ghost btn-sm" onclick="handleSchemeNav()">
+                        <i class="fa-solid fa-folder-open"></i> 打开已有方案
+                    </button>
+                </div>
             </div>`;
         return;
     }
@@ -24,7 +47,7 @@ export function renderCanvas() {
     state.steps.forEach((step, index) => {
         const isActive = index === state.activeStepIndex;
         const card = document.createElement('div');
-        card.className = `step-card ${isActive ? 'active' : ''}`;
+        card.className = `step-card-v2 ${isActive ? 'active' : ''}`;
         card.draggable = true;
 
         // Selection
@@ -75,22 +98,22 @@ export function renderCanvas() {
 
         // Action Toolbar
         const actions = `
-            <div class="step-actions flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity">
-                 <button class="btn-icon-action text-info hover:bg-info-light p-2" onclick="testStep(event, ${index})" title="测试运行">
-                    <i class="fa-solid fa-play text-lg"></i>
+            <div class="step-actions flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
+                 <button class="btn-icon-action run" onclick="testStep(event, ${index})" title="测试运行">
+                    <i class="fa-solid fa-play"></i>
                 </button>
-                <button class="btn-icon-action text-warning hover:bg-warning-light p-2" onclick="duplicateStep(event, ${index})" title="复制步骤">
-                    <i class="fa-solid fa-copy text-lg"></i>
+                <button class="btn-icon-action duplicate" onclick="duplicateStep(event, ${index})" title="复制步骤">
+                    <i class="fa-solid fa-copy"></i>
                 </button>
-                <button class="btn-icon-action text-danger hover:bg-danger-light p-2" onclick="removeStep(event, ${index})" title="删除步骤">
-                    <i class="fa-solid fa-trash-can text-lg"></i>
+                <button class="btn-icon-action delete" onclick="removeStep(event, ${index})" title="删除步骤">
+                    <i class="fa-solid fa-trash-can"></i>
                 </button>
             </div>
         `;
 
         header.innerHTML = `
-            <span class="font-bold text-sm text-brand flex items-center gap-2">
-                <span class="bg-hover text-tertiary text-xs px-1.5 py-0.5 rounded font-mono">${index + 1}</span>
+            <span class="step-title flex items-center gap-2">
+                <span class="step-index">${index + 1}</span>
                 ${step.title || getTitleByType(step.type)}
             </span>
             ${actions}
@@ -98,7 +121,7 @@ export function renderCanvas() {
 
         // Summary Line
         const summary = document.createElement('div');
-        summary.className = 'text-xs text-tertiary truncate';
+        summary.className = 'step-summary';
         summary.innerHTML = getStepSummary(step);
 
         card.appendChild(header);
@@ -113,12 +136,12 @@ function createInput(label, keyPath, value, type = 'text') {
     const changeFn = isConfig ? `updateConfig('${key}', this.value, '${type}')` : `updateRoot('${key}', this.value)`;
 
     return `
-        <div class="form-group mb-4">
-            <label class="label">${label}</label>
-            <input type="${type}" 
-                   value="${escapeAttribute(value)}" 
-                   oninput="${changeFn}" 
-                   class="input-field w-full">
+        <div class="form-group mb-3">
+            <label class="input-label">${label}</label>
+            <input type="${type}"
+                   value="${escapeAttribute(value)}"
+                   oninput="${changeFn}"
+                   class="input-v2 w-full">
         </div>
     `;
 }
@@ -168,12 +191,12 @@ function createSelectorInput(label, configKey, value, step=null) {
     }
 
     return `
-        <div class="form-group mb-4">
-            <label class="label">${label}</label>
+        <div class="form-group mb-3">
+            <label class="input-label">${label}</label>
             <div class="flex gap-2 items-start">
                 <textarea
                        oninput="updateConfig('${pureKey}', this.value)"
-                       class="input-field flex-1 font-mono text-xs"
+                       class="input-v2 flex-1 font-mono text-xs"
                        rows="3"
                        placeholder="#id or //xpath"
                        id="input-${pureKey}">${value || ''}</textarea>
@@ -186,19 +209,19 @@ function createSelectorInput(label, configKey, value, step=null) {
 
 function createValidationBlock(step) {
     return `
-        <div class="mt-4 border-t border p-4 rounded-lg bg-hover">
-            <label class="block text-tertiary text-xs font-bold mb-2">执行后验证</label>
-            
-            ${createInput('超时时间 / 等待时间 (ms)', 'config.waitAfter', step.config.waitAfter || '0', 'number', '如: 5000')}
-            
-            <div class="mt-2 text-xs text-tertiary mb-2">
-                若设置了"验证元素"，此时间为<b>最长等待时间(超时判定)</b>；<br>
+        <div class="prop-section">
+            <div class="prop-section-title">执行后验证</div>
+
+            ${createInput('超时时间 / 等待时间 (ms)', 'config.waitAfter', step.config.waitAfter || '0', 'number')}
+
+            <div class="prop-hint mb-3">
+                若设置了“验证元素”，此时间为<b>最长等待时间（超时判定）</b>；<br>
                 若未设置，则为<b>固定等待时间</b>。
             </div>
 
             ${createSelectorInput('验证元素出现', 'config.validateSelector', step.config.validateSelector, step)}
-            <div class="mt-2 text-xs text-tertiary">
-                <i class="fa-solid fa-triangle-exclamation text-warning"></i>
+            <div class="prop-hint">
+                <i class="fa-solid fa-triangle-exclamation"></i>
                 如果不为空，将在操作后持续检测该元素。<br>
                 若在超时时间内<b>出现</b>，则验证通过并立即执行下一步（不会死等）；<br>
                 若<b>超时未出现</b>，则判定<b>任务失败</b>并记录，跳过后续步骤。
@@ -216,27 +239,40 @@ export function renderProperties() {
     const step = state.steps[state.activeStepIndex];
     let html = '';
 
-    html += createInput('步骤名称', 'title', step.title);
-    html += createInput('执行前等待 (ms)', 'config.waitBefore', step.config.waitBefore, 'number');
+    // Base settings
+    html += `
+        <div class="prop-section">
+            <div class="prop-section-title">基础设置</div>
+            ${createInput('步骤名称', 'title', step.title)}
+            ${createInput('执行前等待 (ms)', 'config.waitBefore', step.config.waitBefore, 'number')}
+        </div>
+    `;
 
     if (['click', 'input_text', 'upload_file', 'keyboard_map'].includes(step.type)) {
-        html += createSelectorInput('等待元素出现', 'waitForSelector', step.config.waitForSelector, step);
-        html += '<hr class="border my-4">';
+        html += `
+            <div class="prop-section">
+                <div class="prop-section-title">前置等待</div>
+                ${createSelectorInput('等待元素出现', 'waitForSelector', step.config.waitForSelector, step)}
+            </div>
+        `;
     }
 
     if (step.type === 'open_url') {
-        html += createInput('URL 地址', 'config.url', step.config.url);
-        html += `<button class="btn btn-brand w-full mt-2 mb-4" onclick="testOpenUrl()">
+        html += `
+            <div class="prop-section">
+                <div class="prop-section-title">目标地址</div>
+                ${createInput('URL 地址', 'config.url', step.config.url)}
+                <button class="btn-apple w-full mt-2" onclick="testOpenUrl()">
                     <i class="fa-solid fa-globe"></i> 测试打开 (Launch)
-                 </button>`;
+                </button>
+            </div>
+        `;
 
         html += `
-            <div class="mt-4 p-4 rounded-lg bg-hover border-t border">
-                <div class="mb-2">
-                    <label class="label text-brand">🛡️ 自动登录回退</label>
-                </div>
+            <div class="prop-section">
+                <div class="prop-section-title">自动登录回退</div>
+                <p class="prop-hint mb-3">如果跳转到登录页，尝试自动登录。</p>
                 <div id="login-fallback-${state.activeStepIndex}" class="space-y-2">
-                    <p class="text-xs text-tertiary mb-2">如果跳转到登录页，尝试自动登录。</p>
                     ${createSelectorInput('账号输入框', 'config.loginUserSelector', step.config.loginUserSelector, step)}
                     ${createInput('账号', 'config.loginUser', step.config.loginUser)}
                     ${createSelectorInput('密码输入框', 'config.loginPassSelector', step.config.loginPassSelector, step)}
@@ -248,226 +284,267 @@ export function renderProperties() {
         html += createValidationBlock(step);
     }
     else if (step.type === 'input_text' || step.type === 'label_input') {
-        html += createSelectorInput('目标元素定位', 'config.selector', step.config.selector, step);
-
         html += `
-            <div class="form-group mb-4">
-                <label class="label">输入内容来源</label>
-                <select onchange="updateConfig('inputType', this.value)" class="input-field">
-                    <option value="fixed" ${step.config.inputType === 'fixed' ? 'selected' : ''}>固定文本</option>
-                    <option value="excel" ${step.config.inputType === 'excel' ? 'selected' : ''}>Excel 列数据</option>
-                </select>
+            <div class="prop-section">
+                <div class="prop-section-title">元素定位</div>
+                ${createSelectorInput('目标元素定位', 'config.selector', step.config.selector, step)}
             </div>
         `;
 
-        if (step.config.inputType === 'fixed') {
-            html += createInput('输入内容', 'config.value', step.config.value);
-        } else {
-            const excelStep = state.steps.find(s => s.type === 'excel_read');
-            let columns = [];
-            if (excelStep && excelStep.config.columns) {
-                columns = excelStep.config.columns;
-            }
+        html += `
+            <div class="prop-section">
+                <div class="prop-section-title">输入内容</div>
+                <div class="form-group mb-4">
+                    <label class="input-label">输入内容来源</label>
+                    <select onchange="updateConfig('inputType', this.value)" class="input-v2">
+                        <option value="fixed" ${step.config.inputType === 'fixed' ? 'selected' : ''}>固定文本</option>
+                        <option value="excel" ${step.config.inputType === 'excel' ? 'selected' : ''}>Excel 列数据</option>
+                    </select>
+                </div>
 
-            if (columns.length > 0) {
-                html += `
-                    <div class="form-group mb-4">
-                        <label class="label">选择 Excel 列</label>
-                        <select onchange="updateConfig('value', this.value)" class="input-field">
-                            <option value="" disabled ${!step.config.value ? 'selected' : ''}>-- 请选择列名 --</option>
-                            ${columns.map(col => `<option value="${col}" ${step.config.value === col ? 'selected' : ''}>${col}</option>`).join('')}
-                        </select>
-                    </div>
-                 `;
-            } else {
-                html += createInput('Excel 列名 (手动输入)', 'config.value', step.config.value);
-                if (!excelStep) html += `<p class="text-xs text-warning mt-1">⚠️ 未找到 Excel 读取步骤</p>`;
-                else html += `<p class="text-xs text-warning mt-1">⚠️ Excel 文件未读取到表头</p>`;
-            }
-        }
+                ${step.config.inputType === 'fixed'
+                    ? createInput('输入内容', 'config.value', step.config.value)
+                    : (() => {
+                        const excelStep = state.steps.find(s => s.type === 'excel_read');
+                        const columns = (excelStep && excelStep.config.columns) ? excelStep.config.columns : [];
+                        if (columns.length > 0) {
+                            return `
+                                <div class="form-group mb-4">
+                                    <label class="input-label">选择 Excel 列</label>
+                                    <select onchange="updateConfig('value', this.value)" class="input-v2">
+                                        <option value="" disabled ${!step.config.value ? 'selected' : ''}>-- 请选择列名 --</option>
+                                        ${columns.map(col => `<option value="${col}" ${step.config.value === col ? 'selected' : ''}>${col}</option>`).join('')}
+                                    </select>
+                                </div>
+                            `;
+                        } else {
+                            const warning = !excelStep
+                                ? '未找到 Excel 读取步骤'
+                                : 'Excel 文件未读取到表头';
+                            return createInput('Excel 列名 (手动输入)', 'config.value', step.config.value) +
+                                `<p class="prop-hint"><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${warning}</p>`;
+                        }
+                    })()
+                }
 
-        if (step.type === 'label_input') {
-            html += `<div class="bg-info-light text-info text-xs p-2 rounded mt-2 border border-info-light">
-                        <i class="fa-solid fa-info-circle"></i> 标签输入逻辑：<br>
-                        1. 输入文本<br>
-                        2. 回车保存 (Enter)<br>
-                        3. 清空输入框
-                      </div>`;
-        }
+                ${step.type === 'label_input'
+                    ? `<div class="prop-hint">
+                        <i class="fa-solid fa-info-circle text-info"></i> 标签输入逻辑：先输入文本，再按 Enter 保存，最后清空输入框。
+                       </div>`
+                    : ''}
+            </div>
+        `;
 
         if (step.type === 'input_text') {
             html += createValidationBlock(step);
         }
     }
     else if (step.type === 'click') {
-        html += createSelectorInput('元素定位', 'config.selector', step.config.selector, step);
+        html += `
+            <div class="prop-section">
+                <div class="prop-section-title">元素定位</div>
+                ${createSelectorInput('元素定位', 'config.selector', step.config.selector, step)}
+            </div>
+        `;
         html += createValidationBlock(step);
     }
     else if (step.type === 'wait') {
-        html += createInput('等待时间 (ms)', 'config.time', step.config.time, 'number');
+        html += `
+            <div class="prop-section">
+                <div class="prop-section-title">等待时长</div>
+                ${createInput('等待时间 (ms)', 'config.time', step.config.time, 'number')}
+            </div>
+        `;
     }
     else if (step.type === 'keyboard') {
-        html += createSelectorInput('先点击/聚焦元素', 'config.selector', step.config.selector, step);
         html += `
-            <div class="text-xs text-tertiary mt-1 mb-4 pl-1">
-                <i class="fa-solid fa-lightbulb text-warning"></i> 若指定，会先点击该元素获取焦点，再发送按键。
+            <div class="prop-section">
+                <div class="prop-section-title">元素聚焦</div>
+                ${createSelectorInput('先点击/聚焦元素', 'config.selector', step.config.selector, step)}
+                <p class="prop-hint">若指定，会先点击该元素获取焦点，再发送按键。</p>
             </div>
         `;
-        html += createInput('按键内容', 'config.key', step.config.key);
+
         html += `
-            <div class="text-xs text-tertiary mt-1 mb-4 pl-1">
-                支持单键 (Enter, Tab, Escape, A) 或组合键 (Control+C, Shift+Tab)。
-                <a href="https://playwright.dev/python/docs/api/class-keyboard" target="_blank" class="text-info hover:text-info">查看文档</a>
+            <div class="prop-section">
+                <div class="prop-section-title">按键内容</div>
+                ${createInput('按键内容', 'config.key', step.config.key)}
+                <p class="prop-hint">
+                    支持单键 (Enter, Tab, Escape, A) 或组合键 (Control+C, Shift+Tab)。
+                    <a href="https://playwright.dev/python/docs/api/class-keyboard" target="_blank" class="text-link hover:underline">查看文档</a>
+                </p>
+                ${createInput('重复次数', 'config.count', step.config.count || '1', 'number')}
             </div>
         `;
-        html += createInput('重复次数', 'config.count', step.config.count || '1', 'number');
         html += createValidationBlock(step);
     }
     else if (step.type === 'excel_read') {
         html += `
-             <div class="form-group mb-4">
-                <label class="label">Excel 文件路径 (绝对路径)</label>
-                <div class="flex gap-2">
-                    <input type="text" value="${step.config.filePath || ''}" 
-                           onchange="updateConfig('filePath', this.value); reloadExcelColumns(this.value)" 
-                           class="input-field flex-1">
-                    <button class="btn-icon" onclick="browseExcel()">📂</button>
-                </div>
-             </div>
-             
-             <div class="form-group mb-4">
-                <label class="label">结果记录列名</label>
-                <input type="text" value="${step.config.statusColumn || '执行结果'}" 
-                       oninput="updateConfig('statusColumn', this.value)" 
-                       class="input-field" placeholder="例如: 执行结果">
-                <p class="text-xs text-tertiary mt-1">系统将自动在此列记录 Success 或 Failed。</p>
-             </div>
-        `;
-
-        if (step.config.columns && step.config.columns.length > 0) {
-            html += `
+            <div class="prop-section">
+                <div class="prop-section-title">Excel 文件</div>
                 <div class="form-group mb-4">
-                    <label class="label">读取到的表头</label>
-                    <div class="flex flex-wrap gap-2">
-                        ${step.config.columns.map(col => `<span class="bg-brand-light text-brand px-2 py-1 rounded text-xs border border-brand-light">${col}</span>`).join('')}
+                    <label class="input-label">Excel 文件路径 (绝对路径)</label>
+                    <div class="flex gap-2">
+                        <input type="text" value="${step.config.filePath || ''}"
+                               onchange="updateConfig('filePath', this.value); reloadExcelColumns(this.value)"
+                               class="input-v2 flex-1">
+                        <button class="btn-icon" onclick="browseExcel()">📂</button>
                     </div>
                 </div>
-            `;
-        }
+
+                <div class="form-group mb-4">
+                    <label class="input-label">结果记录列名</label>
+                    <input type="text" value="${step.config.statusColumn || '执行结果'}"
+                           oninput="updateConfig('statusColumn', this.value)"
+                           class="input-v2" placeholder="例如: 执行结果">
+                    <p class="prop-hint">系统将自动在此列记录 Success 或 Failed。</p>
+                </div>
+
+                ${step.config.columns && step.config.columns.length > 0
+                    ? `
+                        <div class="form-group mb-4">
+                            <label class="input-label">读取到的表头</label>
+                            <div class="flex flex-wrap gap-2">
+                                ${step.config.columns.map(col => `<span class="bg-brand-light text-brand px-2 py-1 rounded text-xs border border-brand-light">${col}</span>`).join('')}
+                            </div>
+                        </div>
+                    `
+                    : ''
+                }
+            </div>
+        `;
     }
     else if (step.type === 'upload_file') {
-        html += createSelectorInput('上传按钮/输入框', 'config.selector', step.config.selector, step);
-
         html += `
-            <div class="form-group mb-4">
-                <label class="label">文件路径来源</label>
-                <select onchange="updateConfig('inputType', this.value)" class="input-field">
-                    <option value="fixed" ${(!step.config.inputType || step.config.inputType === 'fixed') ? 'selected' : ''}>固定路径</option>
-                    <option value="excel" ${step.config.inputType === 'excel' ? 'selected' : ''}>Excel 列数据</option>
-                </select>
+            <div class="prop-section">
+                <div class="prop-section-title">元素定位</div>
+                ${createSelectorInput('上传按钮/输入框', 'config.selector', step.config.selector, step)}
             </div>
         `;
 
-        if (step.config.inputType === 'excel') {
-            const excelStep = state.steps.find(s => s.type === 'excel_read');
-            let columns = [];
-            if (excelStep && excelStep.config.columns) {
-                columns = excelStep.config.columns;
-            }
-
-            if (columns.length > 0) {
-                html += `
-                    <div class="form-group mb-4">
-                        <label class="label">选择包含文件路径的列</label>
-                        <select onchange="updateConfig('filePath', this.value)" class="input-field">
-                            <option value="" disabled ${!step.config.filePath ? 'selected' : ''}>-- 请选择列名 --</option>
-                            ${columns.map(col => `<option value="${col}" ${step.config.filePath === col ? 'selected' : ''}>${col}</option>`).join('')}
-                        </select>
-                    </div>
-                 `;
-            } else {
-                html += createInput('Excel 列名 (手动输入)', 'config.filePath', step.config.filePath);
-                if (!excelStep) html += `<p class="text-xs text-warning mt-1">⚠️ 未找到 Excel 读取步骤</p>`;
-                else html += `<p class="text-xs text-warning mt-1">⚠️ Excel 文件未读取到表头</p>`;
-            }
-        } else {
-            html += `
+        html += `
+            <div class="prop-section">
+                <div class="prop-section-title">文件来源</div>
                 <div class="form-group mb-4">
-                    <label class="label">本地文件路径</label>
-                    <div class="flex gap-2">
-                         <input type="text" value="${step.config.filePath || ''}" 
-                                onchange="updateConfig('filePath', this.value)" 
-                                class="input-field flex-1">
-                         <button class="btn-icon" onclick="alert('TODO: Browse local file for upload (use path manually for now)')">📂</button>
-                    </div>
+                    <label class="input-label">文件路径来源</label>
+                    <select onchange="updateConfig('inputType', this.value)" class="input-v2">
+                        <option value="fixed" ${(!step.config.inputType || step.config.inputType === 'fixed') ? 'selected' : ''}>固定路径</option>
+                        <option value="excel" ${step.config.inputType === 'excel' ? 'selected' : ''}>Excel 列数据</option>
+                    </select>
                 </div>
-            `;
-        }
+
+                ${step.config.inputType === 'excel'
+                    ? (() => {
+                        const excelStep = state.steps.find(s => s.type === 'excel_read');
+                        const columns = (excelStep && excelStep.config.columns) ? excelStep.config.columns : [];
+                        if (columns.length > 0) {
+                            return `
+                                <div class="form-group mb-4">
+                                    <label class="input-label">选择包含文件路径的列</label>
+                                    <select onchange="updateConfig('filePath', this.value)" class="input-v2">
+                                        <option value="" disabled ${!step.config.filePath ? 'selected' : ''}>-- 请选择列名 --</option>
+                                        ${columns.map(col => `<option value="${col}" ${step.config.filePath === col ? 'selected' : ''}>${col}</option>`).join('')}
+                                    </select>
+                                </div>
+                            `;
+                        } else {
+                            const warning = !excelStep
+                                ? '未找到 Excel 读取步骤'
+                                : 'Excel 文件未读取到表头';
+                            return createInput('Excel 列名 (手动输入)', 'config.filePath', step.config.filePath) +
+                                `<p class="prop-hint"><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${warning}</p>`;
+                        }
+                    })()
+                    : `
+                        <div class="form-group mb-4">
+                            <label class="input-label">本地文件路径</label>
+                            <div class="flex gap-2">
+                                 <input type="text" value="${step.config.filePath || ''}"
+                                        onchange="updateConfig('filePath', this.value)"
+                                        class="input-v2 flex-1">
+                                 <button class="btn-icon" onclick="alert('TODO: Browse local file for upload (use path manually for now)')">📂</button>
+                            </div>
+                        </div>
+                    `
+                }
+            </div>
+        `;
 
         html += createValidationBlock(step);
     }
     else if (step.type === 'dropdown_select') {
-        html += createSelectorInput('触发下拉框', 'config.selector', step.config.selector, step);
-        html += createSelectorInput('选项元素', 'config.optionSelector', step.config.optionSelector || 'li', step);
         html += `
-            <div class="text-xs text-tertiary mt-1 mb-4 pl-1">
-                <i class="fa-solid fa-lightbulb text-warning"></i> 
-                提示：请手动展开下拉框后拾取任意一个选项。确保选择器通用（如 "li" 或 ".el-select-dropdown__item"），不要使用特定 ID。
-            </div>
+            <div class="prop-section">
+                <div class="prop-section-title">下拉元素</div>
+                ${createSelectorInput('触发下拉框', 'config.selector', step.config.selector, step)}
+                ${createSelectorInput('选项元素', 'config.optionSelector', step.config.optionSelector || 'li', step)}
+                <p class="prop-hint">
+                    <i class="fa-solid fa-lightbulb text-warning"></i>
+                    请手动展开下拉框后拾取任意一个选项。确保选择器通用（如 "li" 或 ".el-select-dropdown__item"），不要使用特定 ID。
+                </p>
 
-            <div class="form-group mb-4">
-                <label class="label">展开方式</label>
-                <select onchange="updateConfig('expandMethod', this.value)" class="input-field">
-                    <option value="hover" ${(!step.config.expandMethod || step.config.expandMethod === 'hover') ? 'selected' : ''}>悬停展开 - 默认</option>
-                    <option value="click" ${step.config.expandMethod === 'click' ? 'selected' : ''}>点击展开</option>
-                </select>
-                <p class="text-xs text-tertiary mt-1">若悬停无法展开子菜单，请尝试改为点击。</p>
+                <div class="form-group mb-4">
+                    <label class="input-label">展开方式</label>
+                    <select onchange="updateConfig('expandMethod', this.value)" class="input-v2">
+                        <option value="hover" ${(!step.config.expandMethod || step.config.expandMethod === 'hover') ? 'selected' : ''}>悬停展开 - 默认</option>
+                        <option value="click" ${step.config.expandMethod === 'click' ? 'selected' : ''}>点击展开</option>
+                    </select>
+                    <p class="prop-hint">若悬停无法展开子菜单，请尝试改为点击。</p>
+                </div>
+            </div>
+        `;
+
+        html += `
+            <div class="prop-section">
+                <div class="prop-section-title">目标文本</div>
+                <div class="form-group mb-4">
+                    <label class="input-label">目标文本来源</label>
+                    <select onchange="updateConfig('inputType', this.value)" class="input-v2">
+                        <option value="fixed" ${(!step.config.inputType || step.config.inputType === 'fixed') ? 'selected' : ''}>固定文本</option>
+                        <option value="excel" ${step.config.inputType === 'excel' ? 'selected' : ''}>Excel 列数据</option>
+                    </select>
+                </div>
+
+                ${step.config.inputType === 'excel'
+                    ? (() => {
+                        const excelStep = state.steps.find(s => s.type === 'excel_read');
+                        const columns = (excelStep && excelStep.config.columns) ? excelStep.config.columns : [];
+                        if (columns.length > 0) {
+                            return `
+                                <div class="form-group mb-4">
+                                    <label class="input-label">选择 Excel 列</label>
+                                    <select onchange="updateConfig('value', this.value)" class="input-v2">
+                                        <option value="" disabled ${!step.config.value ? 'selected' : ''}>-- 请选择列名 --</option>
+                                        ${columns.map(col => `<option value="${col}" ${step.config.value === col ? 'selected' : ''}>${col}</option>`).join('')}
+                                    </select>
+                                </div>
+                            `;
+                        } else {
+                            const warning = !excelStep
+                                ? '未找到 Excel 读取步骤'
+                                : 'Excel 文件未读取到表头';
+                            return createInput('Excel 列名', 'config.value', step.config.value) +
+                                `<p class="prop-hint"><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${warning}</p>`;
+                        }
+                    })()
+                    : createInput('目标文本', 'config.value', step.config.value)
+                }
             </div>
         `;
 
         html += `
-            <div class="form-group mb-4">
-                <label class="label">目标文本来源</label>
-                <select onchange="updateConfig('inputType', this.value)" class="input-field">
-                    <option value="fixed" ${(!step.config.inputType || step.config.inputType === 'fixed') ? 'selected' : ''}>固定文本</option>
-                    <option value="excel" ${step.config.inputType === 'excel' ? 'selected' : ''}>Excel 列数据</option>
-                </select>
-            </div>
-        `;
-
-        if (step.config.inputType === 'excel') {
-            const excelStep = state.steps.find(s => s.type === 'excel_read');
-            let columns = excelStep && excelStep.config.columns ? excelStep.config.columns : [];
-
-            if (columns.length > 0) {
-                html += `
-                    <div class="form-group mb-4">
-                        <label class="label">选择 Excel 列 (Select Column)</label>
-                        <select onchange="updateConfig('value', this.value)" class="input-field">
-                            <option value="" disabled ${!step.config.value ? 'selected' : ''}>-- 请选择列名 --</option>
-                            ${columns.map(col => `<option value="${col}" ${step.config.value === col ? 'selected' : ''}>${col}</option>`).join('')}
-                        </select>
-                    </div>
-                `;
-            } else {
-                html += createInput('Excel 列名', 'config.value', step.config.value);
-                if (!excelStep) html += `<p class="text-xs text-warning mt-1">⚠️ 未找到 Excel 读取步骤</p>`;
-                else html += `<p class="text-xs text-warning mt-1">⚠️ Excel 文件未读取到表头</p>`;
-            }
-        } else {
-            html += createInput('目标文本', 'config.value', step.config.value);
-        }
-
-        html += `
-            <div class="form-group mb-4">
-                <label class="label flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" 
-                           ${step.config.extraEnter ? 'checked' : ''} 
-                           onchange="updateConfig('extraEnter', this.checked)" 
-                           class="checkbox-dark">
-                    是否执行额外回车？
-                </label>
-                <p class="text-xs text-tertiary mt-1">勾选后，在选择完成后会额外执行一次回车键以确认选择。</p>
+            <div class="prop-section">
+                <div class="prop-section-title">额外选项</div>
+                <div class="form-group mb-4">
+                    <label class="input-label flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox"
+                               ${step.config.extraEnter ? 'checked' : ''}
+                               onchange="updateConfig('extraEnter', this.checked)"
+                               class="checkbox-dark">
+                        是否执行额外回车？
+                    </label>
+                    <p class="prop-hint">勾选后，在选择完成后会额外执行一次回车键以确认选择。</p>
+                </div>
             </div>
         `;
 

@@ -4,15 +4,51 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Visual Playwright 编辑器</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
-<body class="flex h-screen overflow-hidden">
+<body class="flex flex-col h-screen overflow-hidden">
+
+<!-- Top Toolbar -->
+<header class="toolbar">
+    <div class="toolbar-left">
+        <span class="brand-mini"><i class="fa-solid fa-layer-group"></i></span>
+        <input id="flow-title" class="flow-title" value="未命名流程" title="点击编辑名称">
+        <span id="save-status" class="save-status">已保存</span>
+    </div>
+    <div class="toolbar-center">
+        <button id="run-btn-top" class="btn-apple">
+            <i class="fa-solid fa-play"></i> 运行
+        </button>
+        <button id="stop-btn-top" class="btn btn-ghost btn-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i class="fa-solid fa-stop"></i> 停止
+        </button>
+        <button id="test-btn-top" class="btn btn-ghost btn-sm" disabled>
+            <i class="fa-solid fa-vial"></i> 测试
+        </button>
+    </div>
+    <div class="toolbar-right">
+        <button class="btn btn-ghost btn-sm" onclick="handleSchemeNav()">
+            <i class="fa-solid fa-folder-open"></i> 方案
+        </button>
+        <button id="save-btn-top" class="btn btn-ghost btn-sm">
+            <i class="fa-solid fa-floppy-disk"></i> 保存
+        </button>
+        <button class="btn btn-ghost btn-sm hover:text-danger" onclick="clearSteps()">
+            <i class="fa-solid fa-trash"></i> 清空
+        </button>
+        <a href="https://github.com/AnxForever/stylekit" target="_blank" class="text-sm text-tertiary hover:text-primary ml-1" title="帮助文档">
+            <i class="fa-solid fa-circle-question"></i>
+        </a>
+    </div>
+</header>
+
+<div class="flex flex-1 overflow-hidden">
 
 <!-- Left Sidebar: Component Lib -->
-<aside class="w-64 border-r flex flex-col p-4 bg-panel">
-    <h2 class="text-xl font-bold mb-6 text-primary">组件库</h2>
+<aside class="layout-sidebar-left border-r flex flex-col px-6 py-6 bg-panel">
+    <h2 class="text-xs font-semibold uppercase tracking-wider text-tertiary mb-4">组件库</h2>
     <div class="space-y-3 flex-1 overflow-y-auto">
         <button onclick="addStep('excel_read')" class="btn-component">
             <i class="fa-solid fa-table w-6 text-center"></i> Excel 读取
@@ -45,45 +81,24 @@
             <i class="fa-solid fa-keyboard w-6 text-center"></i> 键盘模拟
         </button>
     </div>
-
-    <div class="mt-4 space-y-2 pt-4 border-t">
-        <button class="btn btn-ghost btn-w-full mb-2" onclick="handleSchemeNav()">
-            <i class="fa-solid fa-folder-open w-6 text-center"></i> 方案管理
-        </button>
-        <button id="run-btn" class="btn btn-success btn-w-full">
-            <i class="fa-solid fa-play w-6 text-center"></i> 运行流程
-        </button>
-        <button id="stop-btn"
-            class="btn btn-warning btn-w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled>
-            <i class="fa-solid fa-stop w-6 text-center"></i> 停止流程
-        </button>
-        <button id="save-btn" class="btn btn-brand btn-w-full">
-            <i class="fa-solid fa-floppy-disk w-6 text-center"></i> 保存流程
-        </button>
-        <button onclick="clearSteps()" class="btn btn-danger btn-w-full">
-            <i class="fa-solid fa-trash w-6 text-center"></i> 清空
-        </button>
-    </div>
 </aside>
 
-<!-- Main Canvas -->
-<main class="flex-1 bg-page p-8 overflow-y-auto relative flex flex-col">
-    <div id="canvas-container" class="max-w-3xl mx-auto w-full space-y-4 pb-20">
-        <div id="empty-state"
-            class="text-center text-placeholder mt-20 border-2 border-dashed border p-10 rounded-lg select-none">
-            点击左侧组件开始搭建流程
-        </div>
+  <!-- Main Canvas: 内容自适应，用内边距控制呼吸感 -->
+  <main class="layout-canvas bg-canvas px-10 py-6 overflow-y-auto relative flex flex-col">
+      <div id="canvas-container" class="w-full fade-in">
+        <!-- empty state and step cards injected by JS -->
     </div>
 </main>
 
 <!-- Right Sidebar: Properties -->
-<aside class="w-80 border-l bg-panel p-4 flex flex-col overflow-y-auto">
-    <h2 class="text-xl font-bold mb-6 text-primary">属性设置</h2>
-    <div id="properties-content" class="space-y-6">
+<aside class="layout-sidebar-right border-l bg-panel px-12 py-6 flex flex-col overflow-y-auto properties-panel">
+    <h3>属性设置</h3>
+    <div id="properties-content" class="space-y-0">
         <p class="text-tertiary text-center mt-10">请选择一个步骤以设置属性</p>
     </div>
 </aside>
+
+</div>
 
 <script type="module" src="js/main.js"></script>
 </body>

@@ -53,6 +53,17 @@
   --radius: 8px;
   --radius-sm: 6px;
   --radius-xs: 4px;
+
+  /* Apple/Dashboard 升级变量 */
+  --bg-page-new: #f9fafb;
+  --bg-nested:   #f5f5f7;
+  --apple-blue:  #0071e3;
+  --apple-blue-hover: #0077ed;
+  --apple-blue-ring:  rgba(0,113,227,0.15);
+  --radius-xl:   12px;
+  --radius-pill: 9999px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+  --shadow-card-hover: 0 8px 16px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
 }
 
 * { box-sizing: border-box; }
@@ -61,13 +72,14 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color: var(--text-secondary);
-  background-color: var(--bg-page);
+  background-color: #eef0f3;
   height: 100vh;
   display: flex;
   overflow: hidden;
 }
 
 /* ======== Layout Utilities ======== */
+/* 三栏布局策略：使用 flex 权重动态分配宽度，内边距使用固定 rem 值。 */
 .flex { display: flex; }
 .flex-col { flex-direction: column; }
 .flex-1 { flex: 1; }
@@ -79,11 +91,26 @@ body {
 .w-full { width: 100%; }
 .w-64 { width: 16rem; }
 .w-80 { width: 20rem; }
+.w-96 { width: 24rem; }
 .h-full { height: 100%; }
+
+/* 动态三栏布局权重：左侧组件库 / 中间画布 / 右侧属性面板 */
+.layout-sidebar-left  { flex: 1 1 16rem; min-width: 14rem; max-width: 18rem; }
+.layout-canvas        { flex: 3 1 auto;  min-width: 0; }
+.layout-sidebar-right { flex: 1.5 1 20rem; min-width: 20rem; max-width: 28rem; }
+
 .p-2 { padding: 0.5rem; }
 .p-3 { padding: 0.75rem; }
 .p-4 { padding: 1rem; }
 .p-8 { padding: 2rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.px-8 { padding-left: 2rem; padding-right: 2rem; }
+.px-10 { padding-left: 2.5rem; padding-right: 2.5rem; }
+.px-12 { padding-left: 3rem; padding-right: 3rem; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+.py-5 { padding-top: 1.25rem; padding-bottom: 1.25rem; }
+.py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
 .m-0 { margin: 0; }
 .mb-1 { margin-bottom: 0.25rem; }
 .mb-2 { margin-bottom: 0.5rem; }
@@ -149,6 +176,10 @@ body {
 .text-warning { color: var(--warning); }
 .text-danger { color: var(--danger); }
 .text-info { color: var(--info); }
+.text-link { color: var(--text-link); text-decoration: none; }
+
+.hover\:text-primary:hover { color: var(--text-primary); }
+.hover\:underline:hover { text-decoration: underline; }
 
 /* ======== Backgrounds ======== */
 .bg-page { background-color: var(--bg-page); }
@@ -230,6 +261,7 @@ body {
   border: 1px solid var(--border);
 }
 .btn-ghost:hover { background: var(--bg-hover); border-color: var(--border-hover); color: var(--text-primary); }
+.btn-ghost.hover\:text-danger:hover { color: var(--danger); }
 
 .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
 .btn-icon {
@@ -563,3 +595,286 @@ body {
 
 /* ======== Tooltip ======== */
 [title] { position: relative; }
+
+/* ======== Apple/Dashboard Refactor Additions ======== */
+
+/* Toolbar */
+.toolbar {
+  height: 52px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  flex-shrink: 0;
+  z-index: 50;
+}
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.toolbar-center { gap: 0.5rem; }
+.toolbar-right  { gap: 0.5rem; }
+
+.brand-mini {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--brand), #818cf8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+.flow-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.5rem;
+  outline: none;
+  min-width: 120px;
+  max-width: 260px;
+  transition: all 0.15s;
+}
+.flow-title:hover { background: var(--bg-nested); }
+.flow-title:focus {
+  background: var(--bg-panel);
+  border-color: var(--apple-blue);
+  box-shadow: 0 0 0 3px var(--apple-blue-ring);
+}
+
+.save-status {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.save-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+}
+.save-status.dirty::before { background: var(--warning); }
+
+/* Apple-style primary CTA */
+.btn-apple {
+  background: var(--apple-blue);
+  color: #fff;
+  border-radius: var(--radius-pill);
+  padding: 0.4rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+.btn-apple:hover {
+  background: var(--apple-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,113,227,0.25);
+}
+.btn-apple:active { transform: scale(0.96); }
+.btn-apple:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Step card v2 */
+.step-card-v2 {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 1rem;
+}
+.step-card-v2:last-child { margin-bottom: 0; }
+.step-card-v2:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+}
+.step-card-v2.active {
+  border-color: var(--apple-blue);
+  box-shadow: 0 0 0 3px var(--apple-blue-ring), var(--shadow-card);
+  background: #fff;
+}
+
+.step-card-v2 .step-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.step-card-v2 .step-summary {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  line-height: 1.35;
+  margin-top: 0.25rem;
+}
+.step-card-v2 .step-index {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  background: var(--bg-nested);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+/* Input v2 */
+.input-v2 {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: var(--bg-nested);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.input-v2:focus {
+  background: var(--bg-panel);
+  border-color: var(--apple-blue);
+  box-shadow: 0 0 0 3px var(--apple-blue-ring);
+}
+.input-v2::placeholder { color: var(--text-placeholder); }
+
+.input-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  margin-bottom: 0.3rem;
+}
+
+textarea.input-v2 {
+  resize: vertical;
+  min-height: 64px;
+}
+
+select.input-v2 {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%236b7280'%3E%3Cpath d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  padding-right: 2.2rem;
+}
+
+/* Property panel */
+.properties-panel h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.prop-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+.prop-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.prop-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  margin-bottom: 0.75rem;
+}
+
+.prop-hint {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+  margin-top: 0.4rem;
+}
+
+/* Unified icon action buttons */
+.btn-icon-action {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem 0.45rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  transition: all 0.15s;
+  color: var(--text-tertiary);
+}
+.btn-icon-action:hover {
+  background: var(--bg-nested);
+  color: var(--text-primary);
+}
+.btn-icon-action.run:hover { color: var(--success); background: var(--success-bg); }
+.btn-icon-action.duplicate:hover { color: var(--info); background: var(--info-bg); }
+.btn-icon-action.delete:hover { color: var(--danger); background: var(--danger-bg); }
+
+/* Z-Pattern empty state */
+.empty-z {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "brand help"
+    "center center"
+    "trust secondary";
+  min-height: 420px;
+  height: 100%;
+  align-items: center;
+  padding: 2rem;
+  border: 1px dashed var(--border-hover);
+  border-radius: var(--radius-xl);
+  background: var(--bg-panel);
+}
+.empty-z-brand   { grid-area: brand;   justify-self: start;  display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--text-primary); }
+.empty-z-help    { grid-area: help;    justify-self: end; }
+.empty-z-center  { grid-area: center;  text-align: center; justify-self: center; align-self: center; max-width: 420px; }
+.empty-z-center h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+.empty-z-center p  { font-size: 0.95rem; color: var(--text-tertiary); margin-bottom: 1.5rem; }
+.empty-z-trust   { grid-area: trust;   justify-self: start;  align-self: end; font-size: 0.75rem; color: var(--text-tertiary); }
+.empty-z-secondary { grid-area: secondary; justify-self: end; align-self: end; }
+
+/* Background nested helper */
+.bg-nested { background-color: var(--bg-nested); }
+.bg-canvas { background-color: #eef0f3; }
+
+/* Micro-motion */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.35s ease-out both; }
+
+/* Responsive toolbar */
+@media (max-width: 1024px) {
+  .flow-title { max-width: 160px; }
+}
