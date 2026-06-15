@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory
 import os
 import json
+from datetime import datetime
 from core.engine import execute_flow, open_debug_browser, pick_debug_element
 
 app = Flask(__name__, static_folder='static')
@@ -153,7 +154,16 @@ if not os.path.exists('flows'):
 @app.route('/api/flows', methods=['GET'])
 def list_flows():
     try:
-        files = [f for f in os.listdir('flows') if f.endswith('.json')]
+        files = []
+        for f in os.listdir('flows'):
+            if f.endswith('.json'):
+                path = os.path.join('flows', f)
+                mtime = os.path.getmtime(path)
+                files.append({
+                    "name": f,
+                    "mtime": mtime,
+                    "mtime_str": datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M")
+                })
         return jsonify({"status": "success", "flows": files})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

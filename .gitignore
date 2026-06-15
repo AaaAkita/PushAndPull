@@ -29,3 +29,7 @@ __pycache__/
 # OS
 Thumbs.db
 .DS_Store
+
+# 
+.playwright-mcp/
+.reasonix
