@@ -227,8 +227,8 @@ async function saveScheme() {
 }
 
 async function pickSelector(configKey) {
-    const url = prompt("请输入 URL 来辅助拾取 (留空使用当前页面):");
-    const data = await API.pickSelectorAPI(url);
+    // 直接使用当前页面拾取，不再每次弹窗询问 URL
+    const data = await API.pickSelectorAPI(null);
     if (data.status === 'success') {
         const selector = data.selector;
         updateConfig(configKey, selector);
