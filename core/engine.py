@@ -541,14 +541,22 @@ class PlaywrightWorker(threading.Thread):
                         const anchorSel = '#' + CSS.escape(idAncestor.id);
                         const directCount = countBySelector(`${anchorSel} > ${lowerTag}`);
                         const descendantCount = countBySelector(`${anchorSel} ${lowerTag}`);
+                        // 唯一性不够：必须确认命中元素就是 elm 自身。
+                        // 否则会出现"#app 下只有一个直接子 div(.app-wrapper)"时返回
+                        // #app > div，但用户点中的是深层嵌套的"视频"div，命中错位。
                         if (directCount === 1) {
-                            // Use child combinator '>' to avoid matching nested grandchildren
-                            return makeResult(`${anchorSel} > ${lowerTag}`, 'parent-id-anchor', 'high');
+                            const hit = document.querySelector(`${anchorSel} > ${lowerTag}`);
+                            if (hit === elm) {
+                                return makeResult(`${anchorSel} > ${lowerTag}`, 'parent-id-anchor', 'high');
+                            }
                         }
                         if (directCount === 0 && descendantCount === 1) {
-                            return makeResult(`${anchorSel} >> ${lowerTag}`, 'parent-id-anchor', 'high');
+                            const hit = document.querySelector(`${anchorSel} ${lowerTag}`);
+                            if (hit === elm) {
+                                return makeResult(`${anchorSel} >> ${lowerTag}`, 'parent-id-anchor', 'high');
+                            }
                         }
-                        // If not unique, anchor may still be used by later strategies
+                        // If not unique or not hitting elm, anchor may still be used by later strategies
                     }
 
                     // P4: ElementUI framework text
