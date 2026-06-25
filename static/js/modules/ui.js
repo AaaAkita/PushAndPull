@@ -230,6 +230,53 @@ function createValidationBlock(step) {
     `;
 }
 
+/**
+ * 渲染"选择 Excel 列"下拉框。
+ *
+ * 关键修复：当 step.config[valueKey] 不在当前 columns 中时（典型场景：从另一份
+ * flow 复制本步骤，旧列名残留，或换了 Excel 文件后表头变了），浏览器对 <select>
+ * 会默认显示第一个非 disabled 的 option 但【不触发 change 事件】，导致
+ * "UI 显示 resource_id、内存仍是 旧列名" 的脱节，测试时发出旧值。
+ *
+ * 这里在渲染时主动把内存值同步为 select 的实际首选项，保证所见即所发。
+ * 直接写 state.steps 并标记 dirty，不走 updateConfig（避免触发 renderProperties 递归）。
+ *
+ * @param {object} step          当前步骤对象（引用，会被原地修正）
+ * @param {string} valueKey      存列名的 config 字段名（'value' 或 'filePath'）
+ * @param {string} label          下拉框 label 文案
+ * @param {string} placeholder   无列可选时的占位文案
+ */
+function renderExcelColumnSelect(step, valueKey, label, placeholder = '-- 请选择列名 --') {
+    const excelStep = state.steps.find(s => s.type === 'excel_read');
+    const columns = (excelStep && excelStep.config.columns) ? excelStep.config.columns : [];
+
+    if (columns.length === 0) {
+        const warning = !excelStep
+            ? '未找到 Excel 读取步骤'
+            : 'Excel 文件未读取到表头';
+        return createInput('Excel 列名 (手动输入)', `config.${valueKey}`, step.config[valueKey]) +
+            `<p class="prop-hint"><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${warning}</p>`;
+    }
+
+    // 同步修正：当前值无效时，回退为第一列，保证 UI 与内存一致。
+    const current = step.config[valueKey];
+    const synced = columns.includes(current) ? current : columns[0];
+    if (synced !== current) {
+        step.config[valueKey] = synced;
+        state.isDirty = true; // step 是 state.steps 内的同一引用，已原地改值；只标记未保存。
+    }
+
+    return `
+        <div class="form-group mb-4">
+            <label class="input-label">${label}</label>
+            <select onchange="updateConfig('${valueKey}', this.value)" class="input-v2">
+                <option value="" disabled ${!synced ? 'selected' : ''}>${placeholder}</option>
+                ${columns.map(col => `<option value="${col}" ${synced === col ? 'selected' : ''}>${col}</option>`).join('')}
+            </select>
+        </div>
+    `;
+}
+
 export function renderProperties() {
     if (state.activeStepIndex === null || !state.steps[state.activeStepIndex]) {
         propertiesContent.innerHTML = '<p class="text-tertiary text-center mt-10">请选择一个步骤以设置属性</p>';
@@ -304,27 +351,7 @@ export function renderProperties() {
 
                 ${step.config.inputType === 'fixed'
                     ? createInput('输入内容', 'config.value', step.config.value)
-                    : (() => {
-                        const excelStep = state.steps.find(s => s.type === 'excel_read');
-                        const columns = (excelStep && excelStep.config.columns) ? excelStep.config.columns : [];
-                        if (columns.length > 0) {
-                            return `
-                                <div class="form-group mb-4">
-                                    <label class="input-label">选择 Excel 列</label>
-                                    <select onchange="updateConfig('value', this.value)" class="input-v2">
-                                        <option value="" disabled ${!step.config.value ? 'selected' : ''}>-- 请选择列名 --</option>
-                                        ${columns.map(col => `<option value="${col}" ${step.config.value === col ? 'selected' : ''}>${col}</option>`).join('')}
-                                    </select>
-                                </div>
-                            `;
-                        } else {
-                            const warning = !excelStep
-                                ? '未找到 Excel 读取步骤'
-                                : 'Excel 文件未读取到表头';
-                            return createInput('Excel 列名 (手动输入)', 'config.value', step.config.value) +
-                                `<p class="prop-hint"><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${warning}</p>`;
-                        }
-                    })()
+                    : renderExcelColumnSelect(step, 'value', '选择 Excel 列')
                 }
 
                 ${step.type === 'label_input'
@@ -434,27 +461,7 @@ export function renderProperties() {
                 </div>
 
                 ${step.config.inputType === 'excel'
-                    ? (() => {
-                        const excelStep = state.steps.find(s => s.type === 'excel_read');
-                        const columns = (excelStep && excelStep.config.columns) ? excelStep.config.columns : [];
-                        if (columns.length > 0) {
-                            return `
-                                <div class="form-group mb-4">
-                                    <label class="input-label">选择包含文件路径的列</label>
-                                    <select onchange="updateConfig('filePath', this.value)" class="input-v2">
-                                        <option value="" disabled ${!step.config.filePath ? 'selected' : ''}>-- 请选择列名 --</option>
-                                        ${columns.map(col => `<option value="${col}" ${step.config.filePath === col ? 'selected' : ''}>${col}</option>`).join('')}
-                                    </select>
-                                </div>
-                            `;
-                        } else {
-                            const warning = !excelStep
-                                ? '未找到 Excel 读取步骤'
-                                : 'Excel 文件未读取到表头';
-                            return createInput('Excel 列名 (手动输入)', 'config.filePath', step.config.filePath) +
-                                `<p class="prop-hint"><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${warning}</p>`;
-                        }
-                    })()
+                    ? renderExcelColumnSelect(step, 'filePath', '选择包含文件路径的列')
                     : `
                         <div class="form-group mb-4">
                             <label class="input-label">本地文件路径</label>
@@ -506,27 +513,7 @@ export function renderProperties() {
                 </div>
 
                 ${step.config.inputType === 'excel'
-                    ? (() => {
-                        const excelStep = state.steps.find(s => s.type === 'excel_read');
-                        const columns = (excelStep && excelStep.config.columns) ? excelStep.config.columns : [];
-                        if (columns.length > 0) {
-                            return `
-                                <div class="form-group mb-4">
-                                    <label class="input-label">选择 Excel 列</label>
-                                    <select onchange="updateConfig('value', this.value)" class="input-v2">
-                                        <option value="" disabled ${!step.config.value ? 'selected' : ''}>-- 请选择列名 --</option>
-                                        ${columns.map(col => `<option value="${col}" ${step.config.value === col ? 'selected' : ''}>${col}</option>`).join('')}
-                                    </select>
-                                </div>
-                            `;
-                        } else {
-                            const warning = !excelStep
-                                ? '未找到 Excel 读取步骤'
-                                : 'Excel 文件未读取到表头';
-                            return createInput('Excel 列名', 'config.value', step.config.value) +
-                                `<p class="prop-hint"><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${warning}</p>`;
-                        }
-                    })()
+                    ? renderExcelColumnSelect(step, 'value', '选择 Excel 列')
                     : createInput('目标文本', 'config.value', step.config.value)
                 }
             </div>

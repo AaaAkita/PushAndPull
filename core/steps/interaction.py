@@ -44,6 +44,16 @@ class InputTextStep(BaseStep):
         selector = self.resolve_sel(self.replace_vars(raw_selector))
 
         if input_type == 'excel':
+            # Excel column mode: raw_value is the column name.
+            # Guard against stale/invalid column names so we fail loudly
+            # instead of silently filling an empty string into the page.
+            if raw_value not in self.context.row:
+                self.log(
+                    f"输入失败: Excel 中找不到列 '{raw_value}'"
+                    f"（可用列: {list(self.context.row.keys())}）",
+                    "ERROR"
+                )
+                return False
             value = str(self.context.row.get(raw_value, ""))
         else:
             value = self.replace_vars(str(raw_value))
@@ -71,8 +81,15 @@ class LabelInputStep(BaseStep):
         raw_value = config.get('value', '')
         
         selector = self.resolve_sel(self.replace_vars(raw_selector))
-        
+
         if input_type == 'excel':
+            if raw_value not in self.context.row:
+                self.log(
+                    f"标签输入失败: Excel 中找不到列 '{raw_value}'"
+                    f"（可用列: {list(self.context.row.keys())}）",
+                    "ERROR"
+                )
+                return False
             value = str(self.context.row.get(raw_value, ""))
         else:
             value = self.replace_vars(str(raw_value))
@@ -112,6 +129,13 @@ class UploadFileStep(BaseStep):
         selector = self.resolve_sel(self.replace_vars(raw_selector))
         
         if input_type == 'excel':
+            if raw_path not in self.context.row:
+                self.log(
+                    f"上传失败: Excel 中找不到列 '{raw_path}'"
+                    f"（可用列: {list(self.context.row.keys())}）",
+                    "ERROR"
+                )
+                return False
             file_path = str(self.context.row.get(raw_path, ""))
         else:
             file_path = self.replace_vars(raw_path)
@@ -164,6 +188,13 @@ class DropdownSelectStep(BaseStep):
         raw_val = config.get('value', '')
         
         if input_type == 'excel':
+            if raw_val not in row:
+                self.log(
+                    f"下拉选择失败: Excel 中找不到列 '{raw_val}'"
+                    f"（可用列: {list(row.keys())}）",
+                    "ERROR"
+                )
+                return False
             target_val = str(row.get(raw_val, ""))
         else:
             target_val = self.replace_vars(raw_val)
