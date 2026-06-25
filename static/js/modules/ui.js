@@ -201,6 +201,7 @@ function createSelectorInput(label, configKey, value, step=null) {
                        placeholder="#id or //xpath"
                        id="input-${pureKey}">${value || ''}</textarea>
                 <button class="btn-icon h-8" onclick="pickSelector('${pureKey}')" title="Pick from Browser">🎯</button>
+                <button class="btn-icon h-8" onclick="highlightSelector('${pureKey}')" title="高亮匹配元素（2秒自动清除）">🔍</button>
             </div>
             ${metaHtml}
         </div>

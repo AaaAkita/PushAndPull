@@ -43,6 +43,19 @@ export async function pickSelectorAPI(url) {
     }
 }
 
+export async function highlightSelectorAPI(selector) {
+    try {
+        const res = await fetch('/api/highlight_selector', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ selector: selector })
+        });
+        return await res.json();
+    } catch (e) {
+        return { status: 'error', message: e.toString() };
+    }
+}
+
 export async function debugOpenUrl(url) {
     try {
         await fetch('/api/debug/open', {

@@ -1098,6 +1098,61 @@ class PlaywrightWorker(threading.Thread):
              # Re-raise to be caught by main loop
              raise e
 
+    def _internal_highlight(self, selector):
+        """
+        在页面上高亮指定选择器匹配到的所有元素，2 秒后自动清除。
+        返回 {"count": N}。
+        """
+        self._ensure_page(bring_to_front=False)
+        if not selector:
+            return {"count": 0, "error": "选择器为空"}
+
+        try:
+            loc = self.page.locator(selector)
+            count = loc.count()
+        except Exception as e:
+            return {"count": 0, "error": f"选择器无效: {e}"}
+
+        if count == 0:
+            return {"count": 0}
+
+        # 给所有匹配元素加红色 outline
+        try:
+            self.page.evaluate("""(sel) => {
+                const els = document.querySelectorAll(sel);
+                els.forEach(el => {
+                    el.__orig_outline = el.style.outline;
+                    el.style.outline = '2px solid red';
+                });
+            }""", selector)
+        except Exception:
+            # querySelectorAll 对 Playwright 引擎选择器（如 >> visible=true）可能不兼容，
+            # 改用 locator 逐个标注
+            for i in range(count):
+                try:
+                    loc.nth(i).evaluate("el => { el.__orig_outline = el.style.outline; el.style.outline = '2px solid red'; }")
+                except Exception:
+                    pass
+
+        # 2 秒后清除
+        self.page.wait_for_timeout(2000)
+        try:
+            self.page.evaluate("""(sel) => {
+                const els = document.querySelectorAll(sel);
+                els.forEach(el => {
+                    el.style.outline = el.__orig_outline || '';
+                    delete el.__orig_outline;
+                });
+            }""", selector)
+        except Exception:
+            for i in range(count):
+                try:
+                    loc.nth(i).evaluate("el => { el.style.outline = el.__orig_outline || ''; delete el.__orig_outline; }")
+                except Exception:
+                    pass
+
+        return {"count": count}
+
 # --- Bridge ---
 
 class ThreadSafeDebugSession:
@@ -1128,6 +1183,9 @@ class ThreadSafeDebugSession:
     def pick(self, url=None):
         return self._submit("_internal_pick", url)
 
+    def highlight(self, selector):
+        return self._submit("_internal_highlight", selector)
+
     def run_flow(self, flow_data, mode='normal'):
         return self._submit("_internal_run_steps", flow_data, mode=mode)
 
@@ -1156,6 +1214,9 @@ def open_debug_browser(url):
 
 def pick_debug_element(url=None):
     return _debug_session.pick(url)
+
+def highlight_selector(selector):
+    return _debug_session.highlight(selector)
 
 def execute_flow(flow_data, mode='normal'):
     """

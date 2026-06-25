@@ -153,6 +153,10 @@ function updateRoot(key, value) {
     if (state.activeStepIndex !== null) {
         const steps = [...state.steps];
         steps[state.activeStepIndex][key] = value;
+        // 用户手动编辑标题，标记为非自动生成，后续拾取不再覆盖
+        if (key === 'title') {
+            steps[state.activeStepIndex].config._titleAuto = false;
+        }
         setSteps(steps);
         UI.renderCanvas();
     }
@@ -239,10 +243,61 @@ async function pickSelector(configKey) {
             warnings: data.warnings || []
         };
         updateConfig('_pickerMeta', meta);
+
+        // click 类步骤：拾取到含文本的选择器时，自动命名标题为「点击 {文本}」
+        // 仅当标题未由用户手动改过（_titleAuto 非 false）时覆盖
+        const step = state.steps[state.activeStepIndex];
+        if (step && step.type === 'click') {
+            const text = extractTextFromSelector(selector);
+            if (text && step.config._titleAuto !== false) {
+                const newTitle = `点击 ${text}`;
+                const steps = [...state.steps];
+                steps[state.activeStepIndex].title = newTitle;
+                steps[state.activeStepIndex].config._titleAuto = true;
+                setSteps(steps);
+                UI.renderCanvas();
+            }
+        }
+
         alert(`已拾取: ${selector}`);
         UI.renderProperties();
     } else {
         alert("拾取失败: " + data.message);
+    }
+}
+
+/**
+ * 从选择器中提取 text="..." 段的文本内容（取第一个匹配）。
+ * 如 `.el-table__fixed-right >> text="编辑"` → "编辑"
+ * 提取不到返回 null。
+ */
+function extractTextFromSelector(selector) {
+    if (!selector) return null;
+    const m = selector.match(/text="([^"]+)"/);
+    return m ? m[1] : null;
+}
+
+/**
+ * 在页面上高亮当前步骤选择器匹配的元素，2 秒后自动清除。
+ */
+async function highlightSelector(configKey) {
+    const step = state.steps[state.activeStepIndex];
+    if (!step) return;
+    const selector = step.config[configKey];
+    if (!selector) {
+        alert('选择器为空，请先拾取或输入');
+        return;
+    }
+    const data = await API.highlightSelectorAPI(selector);
+    if (data.status === 'success') {
+        const count = data.count;
+        if (count > 0) {
+            alert(`高亮 ${count} 个元素（2秒后自动清除）`);
+        } else {
+            alert('未匹配到元素');
+        }
+    } else {
+        alert('高亮失败: ' + (data.message || data.error || '未知错误'));
     }
 }
 
@@ -503,6 +558,7 @@ function init() {
     window.fetchExcelColumns = fetchExcelColumns;
     window.reloadExcelColumns = reloadExcelColumns;
     window.pickSelector = pickSelector;
+    window.highlightSelector = highlightSelector;
     window.testOpenUrl = testOpenUrl;
     window.handleSchemeNav = handleSchemeNav;
 

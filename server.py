@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory
 import os
 import json
 from datetime import datetime
-from core.engine import execute_flow, open_debug_browser, pick_debug_element
+from core.engine import execute_flow, open_debug_browser, pick_debug_element, highlight_selector
 
 app = Flask(__name__, static_folder='static')
 
@@ -44,6 +44,18 @@ def run_picker():
             return jsonify({"status": "success", **result})
         else:
             return jsonify({"status": "error", "message": "Selection timed out or failed"}), 408
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/highlight_selector', methods=['POST'])
+def highlight_selector_route():
+    try:
+        data = request.json
+        selector = data.get('selector')
+        if not selector:
+            return jsonify({"status": "error", "message": "选择器为空"}), 400
+        result = highlight_selector(selector)
+        return jsonify({"status": "success", "count": result.get("count", 0), "error": result.get("error")})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
