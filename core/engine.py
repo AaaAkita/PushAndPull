@@ -205,10 +205,13 @@ class PlaywrightWorker(threading.Thread):
 
     # --- Internal Actions ---
 
-    def _ensure_page(self):
+    def _ensure_page(self, bring_to_front=True):
         if self.page.is_closed():
              self.page = self.context.new_page()
-        self.page.bring_to_front()
+        # 仅在需要时将窗口拉到前台（如拾取选择器需用户手动点击）。
+        # 流程执行无需前台，避免每行都对焦抢占焦点、打断用户其他工作。
+        if bring_to_front:
+            self.page.bring_to_front()
 
     def _internal_open(self, url):
         self._ensure_page()
@@ -866,7 +869,7 @@ class PlaywrightWorker(threading.Thread):
         else:
             data_rows = [{}]
 
-        self._ensure_page()
+        self._ensure_page(bring_to_front=False)
 
         # Import Registry and Context
         from core.steps.registry import StepRegistry
@@ -891,7 +894,7 @@ class PlaywrightWorker(threading.Thread):
 
             # Ensure page is alive before starting row
             try:
-                self._ensure_page()
+                self._ensure_page(bring_to_front=False)
             except:
                 self.log("页面检查失败，正在重启浏览器...", "WARNING")
                 self._restart_browser()
