@@ -30,6 +30,7 @@ class PlaywrightWorker(threading.Thread):
         self.stop_flag = threading.Event()
         self.execution_logs = []
         self.is_execution_active = False
+        self.last_summary = None  # 上次执行的统计 {total, success, failed, stopped}
 
         # Setup Logging
         self.logs_dir = os.path.abspath("logs")
@@ -881,10 +882,13 @@ class PlaywrightWorker(threading.Thread):
 
         # Import Registry and Context
         from core.steps.registry import StepRegistry
-        from core.steps.base import StepContext
+        from core.steps.base import StepContext, FatalStepError
         # Ensure all steps are loaded
         import core.steps.basic
         import core.steps.interaction
+
+        # 执行统计
+        stats = {"total": len(data_rows), "success": 0, "failed": 0}
 
         for i, row in enumerate(data_rows):
             # Periodic Reset (Every 100 rows)
@@ -914,6 +918,7 @@ class PlaywrightWorker(threading.Thread):
                  val_str = str(val).strip().lower()
                  if val and (val_str == 'success' or val_str == '成功'):
                      self.log(f"跳过 {row_info}: 已处理 ({record_column}='{val}')")
+                     stats["success"] += 1
                      continue
 
             self.log(f"--- 开始 {row_info} (模式: {mode}) ---")
@@ -961,6 +966,16 @@ class PlaywrightWorker(threading.Thread):
                         row_success = False
                         failure_reason = f"失败: {val_msg}"
                         break
+
+                except FatalStepError as fatal_e:
+                    # 致命错误（如 Excel 列名不匹配）：停止整个流程，不跳下一行
+                    self.log(f"⛔ 致命错误，停止流程: {fatal_e}", "ERROR")
+                    self.stop_flag.set()
+                    stats["failed"] += 1
+                    stats["fatal"] = str(fatal_e)
+                    row_success = False
+                    failure_reason = f"致命: {fatal_e}"
+                    break
 
                 except Exception as step_e:
                     err_str = str(step_e)
@@ -1023,6 +1038,16 @@ class PlaywrightWorker(threading.Thread):
                      except Exception as backup_exc:
                          self.log(f"备份写入也失败: {backup_exc}", "ERROR")
 
+            # 行结束统计（无论是否写回 Excel，都按 row_success 计入）
+            if row_success:
+                stats["success"] += 1
+            else:
+                stats["failed"] += 1
+
+        # 执行结束，存统计供状态接口返回
+        if self.stop_flag.is_set():
+            stats["stopped"] = True
+        self.last_summary = stats
         self.is_execution_active = False
         return {"logs": results, "success": True}
 
@@ -1201,7 +1226,8 @@ class ThreadSafeDebugSession:
     def get_status(self):
         return {
             "is_running": self.worker.is_execution_active,
-            "logs": list(self.worker.execution_logs) # Return copy
+            "logs": list(self.worker.execution_logs), # Return copy
+            "summary": self.worker.last_summary
         }
 
 # Initialize

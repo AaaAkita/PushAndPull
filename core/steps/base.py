@@ -1,5 +1,14 @@
 from core.utils import resolve_selector, replace_variables
 
+
+class FatalStepError(Exception):
+    """
+    致命步骤错误：抛出后应停止整个流程（而非跳过当前行继续下一行）。
+    用于配置类错误，如 Excel 列名与实际表头不匹配——继续跑剩余行也是同样的错误。
+    """
+    pass
+
+
 class StepContext:
     """
     Holds the execution environment for a step.

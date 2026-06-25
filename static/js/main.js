@@ -52,7 +52,6 @@ function selectStep(index) {
     setActiveStepIndex(index);
     UI.renderCanvas(); // Update active state styling
     UI.renderProperties();
-    syncTestButton();
 }
 
 function removeStep(e, index) {
@@ -376,15 +375,10 @@ function updateSaveStatus(isDirty) {
     }
 }
 
-function syncTestButton() {
-    const btn = document.getElementById('test-btn-top');
-    if (btn) btn.disabled = state.activeStepIndex === null;
-}
-
 function updateTitleFromState() {
-    const input = document.getElementById('flow-title');
-    if (input && state.flowTitle) {
-        input.value = state.flowTitle;
+    const el = document.getElementById('flow-title');
+    if (el && state.flowTitle) {
+        el.textContent = state.flowTitle;
         document.title = state.flowTitle + ' - Visual Playwright';
     }
 }
@@ -399,6 +393,15 @@ function init() {
     // Run Button Handler
     if (runBtn) {
         runBtn.addEventListener('click', async () => {
+            // 未保存时提示：是=保存后运行，否=不保存直接运行
+            if (state.isDirty) {
+                const wantSave = confirm("当前方案有未保存的修改。\n\n[确定] = 保存后运行\n[取消] = 不保存，直接运行");
+                if (wantSave) {
+                    const ok = await saveScheme();
+                    if (!ok) return; // 保存失败或取消，中止运行
+                }
+            }
+
             runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 启动中...';
             runBtn.disabled = true;
 
@@ -473,13 +476,17 @@ function init() {
                         pollInterval = null;
                         resetRunButtons();
 
-                        const finalLogs = info.logs || [];
-                        const lastLog = finalLogs[finalLogs.length - 1] || "";
-
-                        if (lastLog.includes("⛔")) {
-                            alert("流程已停止!\n" + finalLogs.join('\n'));
+                        // 执行完成只显示统计，不输出全部日志
+                        const summary = info.summary;
+                        if (summary && summary.fatal) {
+                            // 致命错误：列名不匹配等，弹窗报错
+                            alert(`⛔ 流程因致命错误停止！\n\n${summary.fatal}\n\n已处理 ${summary.success + summary.failed} 行：成功 ${summary.success}，失败 ${summary.failed}。`);
+                        } else if (summary && summary.stopped) {
+                            alert(`流程已停止！\n已处理 ${summary.success + summary.failed} 行：成功 ${summary.success}，失败 ${summary.failed}，未处理 ${summary.total - summary.success - summary.failed}。`);
+                        } else if (summary) {
+                            alert(`流程执行完成！\n共 ${summary.total} 行：成功 ${summary.success}，失败 ${summary.failed}。`);
                         } else {
-                            alert("流程执行完成!\n" + finalLogs.join('\n'));
+                            alert("流程执行完成！");
                         }
                     }
                 }
@@ -516,29 +523,6 @@ function init() {
         });
     }
 
-    // Test Button Handler
-    const testBtn = document.getElementById('test-btn-top');
-    if (testBtn) {
-        testBtn.addEventListener('click', () => {
-            if (state.activeStepIndex !== null) {
-                testStep(null, state.activeStepIndex);
-            }
-        });
-    }
-
-    // Flow Title Editing
-    const titleInput = document.getElementById('flow-title');
-    if (titleInput) {
-        titleInput.addEventListener('change', () => {
-            const value = titleInput.value.trim() || '未命名流程';
-            setFlowTitle(value);
-            document.title = value + ' - Visual Playwright';
-        });
-        titleInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') titleInput.blur();
-        });
-    }
-
     // Save status polling
     setInterval(() => {
         updateSaveStatus(state.isDirty);
@@ -570,7 +554,6 @@ function init() {
     }
 
     updateTitleFromState();
-    syncTestButton();
 
     // Render initial state
     UI.renderCanvas();
