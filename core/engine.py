@@ -724,7 +724,10 @@ class PlaywrightWorker(threading.Thread):
                                 }
                                 const tagMatches = countVisibleByText(text, tagName);
                                 if (tagMatches === 1) {
-                                    return makeResult(`${lowerTag} >> text="${safeText}"`, 'visible-text', 'medium');
+                                    // 注意：判定用的是【可见】元素数，但选择器 `tag >> text=`
+                                    // 执行时会匹配所有同标签元素（含不可见），Playwright 取首个
+                                    // 若恰好不可见则超时。追加 >> visible=true 使执行语义与判定一致。
+                                    return makeResult(`${lowerTag} >> text="${safeText}" >> visible=true`, 'visible-text', 'medium');
                                 }
                                 // parent id anchor
                                 const anc = idAncestor || findStableIdAncestor(elm);
