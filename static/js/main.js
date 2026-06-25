@@ -566,6 +566,12 @@ async function loadSchemeById(name) {
         const finalName = name.endsWith('.json') ? name : name + '.json';
         setCurrentScheme(finalName);
 
+        // 以文件名（去掉 .json 后缀）作为流程标题，避免加载后仍显示"未命名流程"
+        const { setFlowTitle } = await import('./modules/state.js');
+        const displayTitle = finalName.replace(/\.json$/i, '');
+        setFlowTitle(displayTitle);
+        updateTitleFromState();
+
         UI.renderCanvas();
         UI.renderProperties();
         console.log(`Loaded scheme: ${finalName}`);
