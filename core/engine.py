@@ -185,9 +185,15 @@ class PlaywrightWorker(threading.Thread):
                 self.task_queue.task_done()
 
         except Exception as e:
-            # We can't log to self.execution_logs easily if we crashed, but we can try printing safely
+            err_msg = f"Playwright Worker Crashed: {e}"
+            # 1. Print safely
             try:
-                print(f"Playwright Worker Crashed: {e}".encode('utf-8', errors='replace').decode('utf-8'))
+                print(err_msg.encode('utf-8', errors='replace').decode('utf-8'))
+            except:
+                pass
+            # 2. Ensure the failure is also written to the log file, even if init failed early.
+            try:
+                self.log(err_msg, "ERROR")
             except:
                 pass
 
