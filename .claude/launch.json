@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Visual Playwright dev",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["server.py"],
+      "port": 6115
+    }
+  ]
+}
