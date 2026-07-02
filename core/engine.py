@@ -5,6 +5,7 @@ import os
 import threading
 import queue
 import shutil
+import sys
 import ctypes
 from ctypes import wintypes
 
@@ -50,14 +51,16 @@ class PlaywrightWorker(threading.Thread):
         # 1. UI Log
         self.execution_logs.append(formatted_msg)
 
-        # 2. Console Log (Safe)
+        # 2. Console Log (Safe - avoid garbled Chinese/emoji on GBK console)
         try:
-            # On Windows, printing unicode can fail if console is cp1252/gbk.
-            # We buffer write utf-8 or replace errors to avoid crash.
-            print(formatted_msg.encode('utf-8', errors='replace').decode('utf-8'))
+            # Encode to the console's active code page (e.g. cp936/GBK on Chinese Windows)
+            # with replacement fallback, so emojis and special chars degrade gracefully.
+            console_enc = sys.stdout.encoding or 'utf-8'
+            sys.stdout.buffer.write((formatted_msg + '\n').encode(console_enc, errors='replace'))
+            sys.stdout.buffer.flush()
         except:
             # Ultima ratio: just print ascii ref
-            print(formatted_msg.encode('ascii', errors='replace').decode('ascii'))
+            print(formatted_msg.encode('ascii', errors='replace').decode('ascii'), flush=True)
 
         # 3. File Log
         try:
@@ -116,7 +119,7 @@ class PlaywrightWorker(threading.Thread):
             )
         self.page = self.context.pages[0] if self.context.pages else self.context.new_page()
         self._setup_binding()
-        self._minimize_browser_window()
+        self.log("浏览器会话重启完成", "INFO")
 
     def run(self):
         try:
@@ -133,7 +136,7 @@ class PlaywrightWorker(threading.Thread):
 
             self.page = self.context.pages[0] if self.context.pages else self.context.new_page()
             self._setup_binding()
-            self._minimize_browser_window()
+            self.log("浏览器引擎已启动 (Chromium)", "INFO")
 
             self.ready_event.set()
 
@@ -207,12 +210,40 @@ class PlaywrightWorker(threading.Thread):
     # --- Internal Actions ---
 
     def _ensure_page(self, bring_to_front=True):
-        if self.page.is_closed():
-             self.page = self.context.new_page()
+        """
+        确保浏览器页面可用。做真正的活性探测（而非仅查 is_closed() 标志位）。
+        如果底层 CDP 连接已断裂（用户关闭了浏览器等），自动重启整个会话。
+        """
+        try:
+            # 真正的活性探测：执行一次轻量操作验证 CDP 连接是否存活
+            # 注意：is_closed() 在 CDP 断裂后可能仍返回 False，不可靠。
+            _ = self.page.url
+        except Exception:
+            self.log("页面活性探测失败 (CDP 连接可能已断开)，尝试重建...", "WARNING")
+            try:
+                # 先尝试在现有 context 中建新页
+                if self.context and not self.context.is_closed():
+                    try:
+                        self.page = self.context.new_page()
+                        _ = self.page.url  # 验证新页面可用
+                        self.log("已在现有 context 中创建新页面")
+                        return
+                    except Exception:
+                        pass  # context 也不行了，走重启
+                # context 已死，完整重启浏览器
+                self.log("浏览器上下文已不可用，执行完整重启...", "WARNING")
+                self._restart_browser()
+            except Exception as e:
+                self.log(f"浏览器重建失败: {e}", "ERROR")
+                raise
+
         # 仅在需要时将窗口拉到前台（如拾取选择器需用户手动点击）。
         # 流程执行无需前台，避免每行都对焦抢占焦点、打断用户其他工作。
         if bring_to_front:
-            self.page.bring_to_front()
+            try:
+                self.page.bring_to_front()
+            except Exception:
+                self.log("bring_to_front 失败，忽略", "WARNING")
 
     def _internal_open(self, url):
         self._ensure_page()

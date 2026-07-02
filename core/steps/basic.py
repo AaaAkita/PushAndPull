@@ -26,6 +26,11 @@ class OpenUrlStep(BaseStep):
 
         if raw_url:
             url = self.replace_vars(raw_url)
+            # 导航前先刷新当前页面，避免浏览器因长时间空闲导致 CDP 连接失效
+            try:
+                self.context.page.reload(timeout=5000)
+            except Exception:
+                pass  # 刷新失败（空白页 / 页面已关）不影响后续 goto
             self.context.page.goto(url)
             self.log(f"已打开: {url}")
 
