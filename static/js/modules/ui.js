@@ -374,6 +374,21 @@ export function renderProperties() {
                 ${createSelectorInput('元素定位', 'config.selector', step.config.selector, step)}
             </div>
         `;
+        html += `
+            <div class="prop-section">
+                <div class="prop-section-title">额外选项</div>
+                <div class="form-group mb-4">
+                    <label class="input-label flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox"
+                               ${step.config.extraEnter ? 'checked' : ''}
+                               onchange="updateConfig('extraEnter', this.checked)"
+                               class="checkbox-dark">
+                        是否执行额外回车？
+                    </label>
+                    <p class="prop-hint">勾选后，在点击完成后会额外执行一次回车键以确认操作。</p>
+                </div>
+            </div>
+        `;
         html += createValidationBlock(step);
     }
     else if (step.type === 'wait') {

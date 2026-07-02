@@ -26,7 +26,7 @@ function addStep(type) {
             ...(type === 'input_text' ? { selector: '', inputType: 'fixed', value: '', waitAfter: 0, validateSelector: '' } : {}),
             ...(type === 'keyboard' ? { selector: '', key: '', count: 1, waitBefore: 500, waitAfter: 0, validateSelector: '' } : {}),
             ...(type === 'label_input' ? { selector: '', inputType: 'fixed', value: '' } : {}),
-            ...(type === 'click' ? { selector: '', waitAfter: 0, validateSelector: '' } : {}),
+            ...(type === 'click' ? { selector: '', waitAfter: 0, validateSelector: '', extraEnter: false } : {}),
             ...(type === 'upload_file' ? { selector: '', filePath: '', waitAfter: 0, validateSelector: '' } : {}),
             ...(type === 'excel_read' ? { filePath: '', statusColumn: '执行结果' } : {}),
             ...(type === 'dropdown_select' ? { selector: '', optionSelector: 'li', value: '', inputType: 'fixed', expandMethod: 'hover', extraEnter: false, waitBefore: 500, waitAfter: 0, validateSelector: '' } : {}),

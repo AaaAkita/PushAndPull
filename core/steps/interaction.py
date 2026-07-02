@@ -33,6 +33,28 @@ class ClickStep(BaseStep):
             timeout = self.get_timeout()
             self.context.page.click(selector, timeout=timeout) 
             self.log(f"已点击: {selector}")
+
+            # 额外回车：与下拉选择步骤一致，点击后可选执行一次回车以确认操作。
+            extra = self.config.get('extraEnter')
+            should_extra_enter = False
+            try:
+                # Treat 1/true/'1' as enabled, ignore 0/false/''
+                if isinstance(extra, bool):
+                    should_extra_enter = extra
+                elif isinstance(extra, (int, float)):
+                    should_extra_enter = extra != 0
+                elif isinstance(extra, str):
+                    should_extra_enter = extra.strip().lower() not in ("", "0", "false", "no", "off")
+            except Exception:
+                should_extra_enter = False
+
+            if should_extra_enter:
+                try:
+                    page.keyboard.press("Enter")
+                    self.log("额外执行一次回车以确认操作")
+                except Exception as e:
+                    self.log(f'额外回车失败: {e}', 'WARNING')
+
         return True
 
 class InputTextStep(BaseStep):
